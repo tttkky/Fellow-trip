@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Bot, Check, HeartHandshake, MessageCircle, Volume2, Wand2 } from "lucide-react";
 import OptionSection from "../components/OptionSection.jsx";
-import { companionOptions } from "../data/mockData.js";
+import SegmentedControl from "../components/SegmentedControl.jsx";
+import { buddyProfile, companionOptions } from "../data/mockData.js";
 
-export default function BuddyPage({ buddyReady, setBuddyReady, showToast }) {
-  const [voice, setVoice] = useState("温柔");
-  const [frequency, setFrequency] = useState("中");
+export default function BuddyPage({ variant = "onboarding", submitLabel = "保存搭子设置", onComplete }) {
+  const [voice, setVoice] = useState(buddyProfile.voice);
+  const [frequency, setFrequency] = useState(buddyProfile.frequency);
+  const [companionMode, setCompanionMode] = useState("realtime");
 
   return (
     <div className="page-stack">
@@ -19,13 +21,28 @@ export default function BuddyPage({ buddyReady, setBuddyReady, showToast }) {
           </span>
         </div>
         <div>
-          <span className="eyebrow">创建你的同行者</span>
+          <span className="eyebrow">{variant === "onboarding" ? "首次设置" : "搭子设置"}</span>
           <h2>让 AI 搭子拥有刚刚好的陪伴感</h2>
           <p>它会记住你的旅行偏好、风险边界和喜欢的说话方式。</p>
         </div>
       </section>
 
-      <OptionSection title="形象类型" items={companionOptions.appearance} selected="圆滚机器人" />
+      <OptionSection title="形象类型" items={companionOptions.appearance} selected={buddyProfile.appearance} />
+
+      <section className="card">
+        <div className="section-title">
+          <h3>默认陪伴模式</h3>
+          <MessageCircle size={18} />
+        </div>
+        <SegmentedControl
+          value={companionMode}
+          onChange={setCompanionMode}
+          options={[
+            { value: "realtime", label: "实时陪伴" },
+            { value: "quiet", label: "后台响应" },
+          ]}
+        />
+      </section>
 
       <section className="card">
         <div className="section-title">
@@ -33,7 +50,7 @@ export default function BuddyPage({ buddyReady, setBuddyReady, showToast }) {
           <Volume2 size={18} />
         </div>
         <div className="choice-grid">
-          {["温柔", "活泼", "沉稳", "轻快"].map((item) => (
+          {companionOptions.voices.map((item) => (
             <button key={item} className={voice === item ? "choice active" : "choice"} onClick={() => setVoice(item)}>
               {item}
             </button>
@@ -47,7 +64,7 @@ export default function BuddyPage({ buddyReady, setBuddyReady, showToast }) {
           <MessageCircle size={18} />
         </div>
         <div className="frequency-list">
-          {["高", "中", "低", "仅唤醒"].map((item) => (
+          {companionOptions.frequencies.map((item) => (
             <button
               key={item}
               className={frequency === item ? "frequency active" : "frequency"}
@@ -60,14 +77,8 @@ export default function BuddyPage({ buddyReady, setBuddyReady, showToast }) {
         </div>
       </section>
 
-      <button
-        className="primary-button full"
-        onClick={() => {
-          setBuddyReady(true);
-          showToast(buddyReady ? "搭子配置已更新" : "小旅创建完成");
-        }}
-      >
-        <Wand2 size={17} /> {buddyReady ? "保存搭子设置" : "创建我的搭子"}
+      <button className="primary-button full" onClick={onComplete}>
+        <Wand2 size={17} /> {submitLabel}
       </button>
     </div>
   );

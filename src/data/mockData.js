@@ -1,5 +1,23 @@
+export const userProfile = {
+  name: "杨彤",
+  phone: "138 0000 2026",
+  city: "广州",
+  travelCount: 6,
+  safetyContact: "罗悦",
+};
+
 export const companionOptions = {
   appearance: ["圆滚机器人", "小狐狸", "云朵猫", "人形向导"],
+  voices: ["温柔", "活泼", "沉稳", "轻快"],
+  frequencies: ["高", "中", "低", "仅唤醒"],
+};
+
+export const buddyProfile = {
+  name: "小旅",
+  appearance: "圆滚机器人",
+  voice: "温柔",
+  mode: "实时陪伴",
+  frequency: "中",
 };
 
 export const destinations = [
@@ -57,4 +75,10 @@ export const memories = [
   { title: "你在沙面停了很久", text: "那一段晚风很轻，你拍了 12 张窗边照片。" },
   { title: "第一次独自点完晚餐", text: "从犹豫到坐下，只用了 4 分钟。" },
   { title: "安全返程完成", text: "夜间路线全程未偏航，22:18 回到酒店。" },
+];
+
+export const tripHistory = [
+  { city: "广州", date: "2026.05.18", mood: "松弛", summary: "沙面、永庆坊、西关晚餐" },
+  { city: "厦门", date: "2026.04.26", mood: "治愈", summary: "环岛路、老城区、海边手帐" },
+  { city: "香港", date: "2026.03.15", mood: "探索", summary: "中环街区、海边日落、茶餐厅" },
 ];
