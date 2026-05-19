@@ -35,6 +35,8 @@ npm.cmd run dev
 
 ## 协作建议
 
+详细分工、页面认领建议和可复制给其他对话的 prompt 见 [HANDOFF.md](./HANDOFF.md)。
+
 - `src/App.jsx`：应用状态、登录/首次设置流程、页面切换和整体手机壳布局。
 - `src/pages/`：按页面拆分，适合团队成员分别认领。
   - `AuthPage.jsx`：登录/注册。
