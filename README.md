@@ -33,7 +33,21 @@ npm.cmd run dev
 
 ## 协作建议
 
-- 功能页面放在 `src/pages/`
-- 通用组件放在 `src/components/`
-- mock 数据放在 `src/data/`
-- 全局视觉样式放在 `src/styles/`
+- `src/App.jsx`：应用状态、页面切换和整体手机壳布局。
+- `src/pages/`：按页面拆分，适合团队成员分别认领。
+  - `HomePage.jsx`：今日陪伴/行程首页。
+  - `BuddyPage.jsx`：创建搭子与搭子设置。
+  - `PlanPage.jsx`：智能旅行规划。
+  - `SafetyPage.jsx`：安全守护。
+  - `MemoryPage.jsx`：旅行回忆。
+- `src/components/`：底部导航、悬浮搭子、地图占位、指标卡等通用组件。
+- `src/data/`：mock 数据，后续接接口时优先从这里替换数据来源。
+- `src/styles/`：全局视觉样式和设计 token。
+
+建议后续分支命名：
+
+```bash
+feature/page-plan
+feature/page-safety
+feature/component-map
+```
