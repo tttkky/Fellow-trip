@@ -1,13 +1,13 @@
 export const userProfile = {
-  name: "杨彤",
-  phone: "138 0000 2026",
+  name: "小a",
+  phone: "10000000000",
   city: "广州",
   travelCount: 6,
-  safetyContact: "罗悦",
+  safetyContact: "小b",
 };
 
 export const companionOptions = {
-  appearance: ["圆滚机器人", "小狐狸", "云朵猫", "人形向导"],
+  appearance: ["圆滚机器人", "小小狗", "云朵猫", "卡通人形向导"],
   voices: ["温柔", "活泼", "沉稳", "轻快"],
   frequencies: ["高", "中", "低", "仅唤醒"],
 };
@@ -208,7 +208,7 @@ export const confirmedCompanionTrips = [
 
 export const safetyCards = [
   { icon: "route", level: "normal", title: "路线明亮度良好", text: "当前路线 82% 位于主干道和商业街" },
-  { icon: "phone", level: "normal", title: "联系人可用", text: "罗悦将在异常停留时收到位置确认" },
+  { icon: "phone", level: "normal", title: "联系人可用", text: "小b将在异常停留时收到位置确认" },
   { icon: "moon", level: "warning", title: "21:30 后降低探索强度", text: "建议避免进入未标记小巷和河堤暗段" },
 ];
 
