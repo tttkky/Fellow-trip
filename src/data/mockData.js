@@ -65,6 +65,147 @@ export const timeline = [
   { time: "19:00", title: "西关晚餐", note: "已筛选一人友好座位" },
 ];
 
+export const preTripStatus = {
+  phase: "before",
+  label: "旅途前",
+  title: "先和小旅聊聊，你想去哪一种远方？",
+  subtitle: "用自然语言说出时间、心情、预算或想避开的事，小旅会先给出目的地大方向，再进入交互式地图细化。",
+};
+
+export const planningPrompts = [
+  "我想找一个适合独自放空的海边城市，预算不要太高",
+  "三天两夜，想吃好一点，也希望晚上安全",
+  "帮我从广州出发，找一个拍照和散步都舒服的地方",
+];
+
+export const destinationIdeas = [
+  {
+    city: "厦门",
+    fit: "海风治愈",
+    days: "3天2夜",
+    reason: "海边、老城区、小吃动线紧凑，适合先放松再慢慢探索。",
+    highlights: ["环岛路骑行", "沙坡尾街区", "鼓浪屿建筑"],
+    attractions: [
+      {
+        name: "沙坡尾",
+        tag: "街区漫游",
+        intro: "老港口和新店铺交织，适合下午慢走、拍照、找咖啡坐下。",
+      },
+      {
+        name: "环岛路",
+        tag: "海边路线",
+        intro: "视野开阔、补给点多，小旅会帮你避开暴晒时段。",
+      },
+    ],
+  },
+  {
+    city: "杭州",
+    fit: "湖边慢行",
+    days: "4天3夜",
+    reason: "景点密度高但节奏可控，适合把西湖、茶山和夜游拆成轻松几段。",
+    highlights: ["西湖外圈", "龙井茶山", "运河夜色"],
+    attractions: [
+      {
+        name: "龙井村",
+        tag: "茶山散步",
+        intro: "适合上午进入，路线坡度温和，可以预留一段无安排的发呆时间。",
+      },
+      {
+        name: "小河直街",
+        tag: "夜间友好",
+        intro: "灯光和人流都比较稳定，适合作为晚餐后的轻量散步点。",
+      },
+    ],
+  },
+  {
+    city: "成都",
+    fit: "松弛烟火气",
+    days: "4天3夜",
+    reason: "吃饭选择丰富，白天可城市漫游，晚上用安全守护控制探索边界。",
+    highlights: ["玉林街区", "人民公园", "东郊记忆"],
+    attractions: [
+      {
+        name: "玉林路",
+        tag: "烟火街区",
+        intro: "适合晚饭前后走走，小旅会提前标记排队少的一人友好小店。",
+      },
+      {
+        name: "人民公园",
+        tag: "低强度",
+        intro: "可以把茶馆和老街连成半日路线，适合第一天适应城市节奏。",
+      },
+    ],
+  },
+];
+
+export const planningModes = [
+  {
+    id: "simple",
+    title: "简约模式",
+    desc: "只确定城市、住宿片区和每日大方向，细节到了当地随心调整。",
+  },
+  {
+    id: "detailed",
+    title: "详略模式",
+    desc: "生成具体到景点、餐厅、交通和预留时间的攻略，适合想提前安心的人。",
+  },
+];
+
+export const itineraryMapNodes = [
+  { day: "D1", type: "hotel", name: "鹭屿海景酒店", time: "14:00 入住", meta: "均价 ¥420 / 晚" },
+  { day: "D1", type: "spot", name: "沙坡尾", time: "16:00 漫游", meta: "附近可替换：华新路" },
+  { day: "D1", type: "food", name: "阿吉仔海鲜饭", time: "18:30 晚餐", meta: "评分 4.7，人均 ¥86" },
+  { day: "D2", type: "spot", name: "环岛路", time: "09:30 骑行", meta: "周边设施：租车点、洗手间、补给站" },
+  { day: "D2", type: "food", name: "黄厝小馆", time: "12:40 午餐", meta: "套餐：双拼饭 + 汤 ¥58" },
+];
+
+export const trafficSegments = [
+  { from: "酒店", to: "沙坡尾", method: "打车 12 分钟", note: "傍晚车流稳定，步行替代约 28 分钟" },
+  { from: "沙坡尾", to: "晚餐", method: "步行 9 分钟", note: "沿主街行走，适合夜间安全守护" },
+  { from: "酒店", to: "环岛路", method: "公交 24 分钟", note: "可替换为打车 16 分钟，预算增加约 ¥22" },
+];
+
+export const bookingOptions = [
+  { name: "鹭屿海景酒店", type: "酒店", rating: "4.8", price: "¥420", package: "含早 + 延迟退房", detail: "靠近海边主路，夜间返程更稳定。" },
+  { name: "阿吉仔海鲜饭", type: "饭店", rating: "4.7", price: "¥86", package: "一人海鲜套餐", detail: "有吧台位，适合独自旅行者快速用餐。" },
+];
+
+export const finalItineraryDays = [
+  { day: "Day 1", color: "#7067f5", route: "酒店 - 沙坡尾 - 海鲜饭 - 海边散步" },
+  { day: "Day 2", color: "#2e8f7f", route: "环岛路 - 黄厝午餐 - 鼓浪屿外圈" },
+  { day: "Day 3", color: "#bf6a00", route: "老城区早餐 - 伴手礼 - 返程" },
+];
+
+export const confirmedCompanionTrips = [
+  {
+    id: "xiamen-2026",
+    city: "厦门",
+    title: "厦门三天两夜慢行",
+    date: "2026.06.02 - 06.04",
+    status: "ready",
+    statusText: "待进入陪伴",
+    safety: "安全守护已开启",
+    currentPlace: "鹭屿海景酒店",
+    nextPlace: "沙坡尾",
+    buddyLine: "我会在你出发前 20 分钟提醒交通，也会帮你盯着晚间返程路线。",
+    nearbySpots: [
+      {
+        name: "沙坡尾",
+        tag: "街区漫游",
+        distance: "1.2km",
+        intro: "老港口和新店铺交织，适合下午慢走、拍照、找咖啡坐下。",
+      },
+      {
+        name: "华新路",
+        tag: "替换景点",
+        distance: "2.4km",
+        intro: "更安静的老别墅街区，适合天气太晒时替换沙坡尾。",
+      },
+    ],
+    route: ["酒店", "沙坡尾", "阿吉仔海鲜饭", "海边散步"],
+  },
+];
+
 export const safetyCards = [
   { icon: "route", level: "normal", title: "路线明亮度良好", text: "当前路线 82% 位于主干道和商业街" },
   { icon: "phone", level: "normal", title: "联系人可用", text: "罗悦将在异常停留时收到位置确认" },

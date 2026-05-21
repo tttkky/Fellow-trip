@@ -1,7 +1,19 @@
 import { Bot, ChevronRight, History, LogOut, Shield, UserRound } from "lucide-react";
-import { buddyProfile, tripHistory, userProfile } from "../data/mockData.js";
+import { tripHistory, userProfile } from "../data/mockData.js";
 
-export default function ProfilePage({ onEditBuddy, onLogout, showToast }) {
+const appearanceLabels = {
+  "round-bot": "圆滚机器人",
+  "fox-guide": "小狐狸向导",
+  "cloud-cat": "云朵猫猫",
+  "human-guide": "人形向导",
+};
+
+export default function ProfilePage({ buddySettings, onEditBuddy, onLogout, showToast }) {
+  const buddyName = buddySettings?.name ?? "小旅";
+  const appearance = appearanceLabels[buddySettings?.appearance] ?? buddySettings?.appearance ?? "圆滚机器人";
+  const voice = buddySettings?.voice ?? "温柔";
+  const frequency = buddySettings?.frequency ?? "中";
+
   return (
     <div className="page-stack">
       <section className="profile-hero">
@@ -11,7 +23,9 @@ export default function ProfilePage({ onEditBuddy, onLogout, showToast }) {
         <div>
           <span className="eyebrow">独旅档案</span>
           <h2>{userProfile.name}</h2>
-          <p>{userProfile.city} · 已完成 {userProfile.travelCount} 次独自旅行</p>
+          <p>
+            {userProfile.city} · 已完成 {userProfile.travelCount} 次独自旅行
+          </p>
         </div>
       </section>
 
@@ -40,7 +54,9 @@ export default function ProfilePage({ onEditBuddy, onLogout, showToast }) {
         </span>
         <span>
           <strong>搭子设置</strong>
-          <small>{buddyProfile.name} · {buddyProfile.voice}声线 · {buddyProfile.frequency}频率</small>
+          <small>
+            {buddyName} · {appearance} · {voice}声线 · {frequency}频率
+          </small>
         </span>
         <ChevronRight size={18} />
       </button>
