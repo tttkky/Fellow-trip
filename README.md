@@ -49,6 +49,8 @@ npm.cmd run dev
 
 详细分工、页面认领建议和可复制给其他对话的 prompt 见 [HANDOFF.md](./HANDOFF.md)。
 
+团队 Git / GitHub 协作流程、克隆、拉取、提交、推送和 PR 合并步骤见 [TEAM_DEVELOPMENT.md](./TEAM_DEVELOPMENT.md)。
+
 - `src/App.jsx`：应用状态、登录/首次设置流程、页面切换和整体手机壳布局。
 - `src/pages/`：按页面拆分，适合团队成员分别认领。
   - `AuthPage.jsx`：登录/注册。
