@@ -45,11 +45,11 @@ export default function SafetyPage({ showToast }) {
         </div>
         <label>
           姓名
-          <input value="罗悦" readOnly />
+          <input value="小b" readOnly />
         </label>
         <label>
           手机
-          <input value="138 0000 2026" readOnly />
+          <input value="10000000000" readOnly />
         </label>
         <button className="secondary-button" onClick={() => showToast("联系人编辑将在下一阶段开放")}>
           编辑联系人
