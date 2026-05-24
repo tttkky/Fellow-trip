@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { Bell } from "lucide-react";
+import { ArrowLeft, Bell, History } from "lucide-react";
 import BottomNav from "./components/BottomNav.jsx";
 import FloatingBuddy from "./components/FloatingBuddy.jsx";
 import StatusBar from "./components/StatusBar.jsx";
-import { destinations } from "./data/mockData.js";
+import { buddyProfile, confirmedCompanionTrips } from "./data/mockData.js";
 import { navItems } from "./navigation.js";
 import AuthPage from "./pages/AuthPage.jsx";
 import BuddyPage from "./pages/BuddyPage.jsx";
@@ -18,18 +18,43 @@ const pageTitles = {
   buddySettings: "搭子设置",
 };
 
+const storageKey = "fellowTripPrototypeState";
+
+const loadStoredState = () => {
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveStoredState = (partialState) => {
+  try {
+    const previousState = loadStoredState();
+    window.localStorage.setItem(storageKey, JSON.stringify({ ...previousState, ...partialState }));
+  } catch {
+    // Prototype-only persistence can fail in restricted browsers.
+  }
+};
+
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const storedState = useMemo(loadStoredState, []);
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(storedState.isAuthenticated));
   const [activePage, setActivePage] = useState("home");
-  const [mode, setMode] = useState("realtime");
-  const [buddyReady, setBuddyReady] = useState(false);
-  const [selectedDestination, setSelectedDestination] = useState(destinations[0]);
+  const [mode, setMode] = useState(storedState.buddySettings?.companionMode ?? "realtime");
+  const [buddyReady, setBuddyReady] = useState(Boolean(storedState.buddyReady));
+  const [buddySettings, setBuddySettings] = useState(storedState.buddySettings ?? buddyProfile);
+  const [confirmedTrips, setConfirmedTrips] = useState(storedState.confirmedTrips ?? confirmedCompanionTrips);
+  const [pageHistory, setPageHistory] = useState([]);
   const [toast, setToast] = useState("");
 
+  const effectivePage = isAuthenticated && !buddyReady ? "buddySetup" : activePage;
+
   const pageTitle = useMemo(() => {
-    if (pageTitles[activePage]) return pageTitles[activePage];
-    return navItems.find((item) => item.id === activePage)?.label ?? "陪伴";
-  }, [activePage]);
+    if (pageTitles[effectivePage]) return pageTitles[effectivePage];
+    return navItems.find((item) => item.id === effectivePage)?.label ?? "陪伴";
+  }, [effectivePage]);
 
   const showToast = (message) => {
     setToast(message);
@@ -37,16 +62,95 @@ export default function App() {
     window.__fellowTripToast = window.setTimeout(() => setToast(""), 2200);
   };
 
-  const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-    setActivePage("buddySetup");
-    showToast("登录成功，先创建你的旅行搭子");
+  const navigateToPage = (nextPage, options = {}) => {
+    if (nextPage === activePage) return;
+
+    if (options.reset) {
+      setPageHistory([]);
+    } else if (!options.replace) {
+      setPageHistory((history) => [...history, activePage].slice(-8));
+    }
+
+    setActivePage(nextPage);
   };
 
-  const handleBuddyComplete = () => {
+  const handleBack = () => {
+    const previousPage = pageHistory[pageHistory.length - 1];
+    if (!previousPage) return;
+
+    setPageHistory((history) => history.slice(0, -1));
+    setActivePage(previousPage);
+  };
+
+  const handleAuthSuccess = () => {
+    setIsAuthenticated(true);
+    saveStoredState({ isAuthenticated: true });
+    setPageHistory([]);
+    setActivePage(buddyReady ? "home" : "buddySetup");
+    showToast(buddyReady ? "欢迎回来，已读取本机记忆" : "登录成功，先创建你的旅行搭子");
+  };
+
+  const handleBuddyComplete = (nextBuddySettings) => {
+    const mergedSettings = { ...buddySettings, ...nextBuddySettings };
+    setBuddySettings(mergedSettings);
     setBuddyReady(true);
-    setActivePage(activePage === "buddySettings" ? "profile" : "home");
-    showToast(activePage === "buddySettings" ? "搭子设置已保存" : "小旅已准备好陪你出发");
+    if (mergedSettings.companionMode) {
+      setMode(mergedSettings.companionMode);
+    }
+    saveStoredState({
+      isAuthenticated: true,
+      buddyReady: true,
+      buddySettings: mergedSettings,
+      confirmedTrips,
+    });
+    setPageHistory([]);
+    setActivePage(effectivePage === "buddySettings" ? "profile" : "home");
+    showToast(effectivePage === "buddySettings" ? "搭子设置已保存" : "小旅已准备好和你规划下一段旅程");
+  };
+
+  const handleConfirmTrip = (destination) => {
+    const newTrip = {
+      id: `${destination.city}-${Date.now()}`,
+      city: destination.city,
+      title: `${destination.city}${destination.days ?? "三天两夜"}攻略`,
+      date: "待出发",
+      status: "ready",
+      statusText: "待进入陪伴",
+      safety: "安全守护已开启",
+      currentPlace: "推荐酒店",
+      nextPlace: destination.attractions?.[0]?.name ?? "第一个景点",
+      buddyLine: `我已经把${destination.city}的路线放进陪伴列表，进入行程后会按节点提醒你。`,
+      nearbySpots:
+        destination.attractions?.map((spot, index) => ({
+          ...spot,
+          distance: index === 0 ? "1.2km" : "2.4km",
+        })) ?? [],
+      route: ["酒店", ...(destination.highlights ?? []), "返程"],
+    };
+
+    setConfirmedTrips((trips) => {
+      const nextTrips = [newTrip, ...trips];
+      saveStoredState({ confirmedTrips: nextTrips });
+      return nextTrips;
+    });
+    navigateToPage("plan");
+    showToast("行程已加入陪伴列表");
+  };
+
+  const updateTripStatus = (tripId, status, statusText) => {
+    setConfirmedTrips((trips) => {
+      const nextTrips = trips.map((trip) => (trip.id === tripId ? { ...trip, status, statusText } : trip));
+      saveStoredState({ confirmedTrips: nextTrips });
+      return nextTrips;
+    });
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPageHistory([]);
+    setActivePage("home");
+    saveStoredState({ isAuthenticated: false });
+    showToast("已退出登录，本机搭子记忆仍保留");
   };
 
   if (!isAuthenticated) {
@@ -61,58 +165,94 @@ export default function App() {
     );
   }
 
-  const shouldShowNav = buddyReady && activePage !== "buddySettings";
-  const shouldShowBuddy = buddyReady && activePage !== "buddySettings";
+  const shouldShowNav = buddyReady && effectivePage !== "buddySettings";
+  const shouldShowBuddy = buddyReady && effectivePage !== "buddySettings" && effectivePage !== "home";
+  const shouldShowHeaderBack = pageHistory.length > 0 && effectivePage !== "home" && effectivePage !== "buddySetup";
 
   return (
     <main className="stage">
       <section className="phone-shell" aria-label="FellowTrip mobile prototype">
         <StatusBar />
         <div className="app-header">
-          <div>
-            <span className="eyebrow">FellowTrip</span>
-            <h1>{pageTitle === "陪伴" ? "今日旅途陪伴" : pageTitle}</h1>
+          <div className="app-header-title">
+            {shouldShowHeaderBack && (
+              <button className="header-back-button" type="button" onClick={handleBack} aria-label="返回上一页">
+                <ArrowLeft size={17} />
+              </button>
+            )}
+            <div>
+              <span className="eyebrow">FellowTrip</span>
+              <h1>{effectivePage === "home" ? "旅途前规划" : pageTitle}</h1>
+            </div>
           </div>
-          <button className="icon-button" aria-label="通知" onClick={() => showToast("暂无新的安全提醒")}>
-            <Bell size={18} />
-          </button>
+          <div className="app-header-actions">
+            <button className="history-record-button" type="button" onClick={() => navigateToPage("memory")}>
+              <History size={16} />
+              <span>历史记录</span>
+            </button>
+            <button className="icon-button" aria-label="通知" onClick={() => showToast("暂无新的安全提醒")}>
+              <Bell size={18} />
+            </button>
+          </div>
         </div>
 
         <section className={shouldShowNav ? "screen" : "screen no-nav"}>
-          {activePage === "buddySetup" && (
-            <BuddyPage variant="onboarding" submitLabel="完成设置，进入 FellowTrip" onComplete={handleBuddyComplete} />
-          )}
-          {activePage === "buddySettings" && (
-            <BuddyPage variant="settings" submitLabel="保存搭子设置" onComplete={handleBuddyComplete} />
-          )}
-          {activePage === "home" && (
-            <HomePage mode={mode} setMode={setMode} setActivePage={setActivePage} showToast={showToast} />
-          )}
-          {activePage === "plan" && (
-            <PlanPage
-              selectedDestination={selectedDestination}
-              setSelectedDestination={setSelectedDestination}
-              setActivePage={setActivePage}
-              showToast={showToast}
+          {effectivePage === "buddySetup" && (
+            <BuddyPage
+              variant="onboarding"
+              submitLabel="完成设置，进入 FellowTrip"
+              initialSettings={buddySettings}
+              onComplete={handleBuddyComplete}
             />
           )}
-          {activePage === "safety" && <SafetyPage showToast={showToast} />}
-          {activePage === "memory" && <MemoryPage showToast={showToast} />}
-          {activePage === "profile" && (
+          {effectivePage === "buddySettings" && (
+            <BuddyPage
+              variant="settings"
+              submitLabel="保存搭子设置"
+              initialSettings={buddySettings}
+              onComplete={handleBuddyComplete}
+            />
+          )}
+          {effectivePage === "home" && (
+            <HomePage
+              mode={mode}
+              setMode={setMode}
+              setActivePage={navigateToPage}
+              showToast={showToast}
+              onConfirmTrip={handleConfirmTrip}
+              buddySettings={buddySettings}
+            />
+          )}
+          {effectivePage === "plan" && (
+            <PlanPage
+              confirmedTrips={confirmedTrips}
+              setActivePage={navigateToPage}
+              showToast={showToast}
+              updateTripStatus={updateTripStatus}
+            />
+          )}
+          {effectivePage === "safety" && <SafetyPage showToast={showToast} />}
+          {effectivePage === "memory" && <MemoryPage showToast={showToast} />}
+          {effectivePage === "profile" && (
             <ProfilePage
-              onEditBuddy={() => setActivePage("buddySettings")}
-              onLogout={() => {
-                setIsAuthenticated(false);
-                setBuddyReady(false);
-                setActivePage("home");
-              }}
+              buddySettings={buddySettings}
+              onEditBuddy={() => navigateToPage("buddySettings")}
+              onLogout={handleLogout}
               showToast={showToast}
             />
           )}
         </section>
 
-        {shouldShowBuddy && <FloatingBuddy mode={mode} onClick={() => showToast("我在，随时可以叫我一起看看路线")} />}
-        {shouldShowNav && <BottomNav activePage={activePage} setActivePage={setActivePage} />}
+        {shouldShowBuddy && (
+          <FloatingBuddy
+            mode={mode}
+            buddy={buddySettings}
+            onClick={(message = "我在~有什么想去的地方？") => showToast(message)}
+          />
+        )}
+        {shouldShowNav && (
+          <BottomNav activePage={effectivePage} setActivePage={(page) => navigateToPage(page, { reset: true })} />
+        )}
         {toast && <div className="toast">{toast}</div>}
       </section>
     </main>
