@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Bike,
-  Bot,
   CalendarDays,
   CheckCircle2,
   ChevronRight,
@@ -12,7 +11,6 @@ import {
   Info,
   MapPinned,
   Mic,
-  Navigation,
   Plus,
   Route,
   Send,
@@ -23,11 +21,18 @@ import {
 } from "lucide-react";
 import {
   bookingOptions,
+  detailedRoutePathByDay,
   destinationIdeas,
   finalItineraryDays,
   itineraryMapNodes,
+  mapOptionCatalog,
+  mapOptionDetails,
+  planningDays,
   planningModes,
   preTripStatus,
+  simpleMapRegions,
+  simpleRoutePathByDay,
+  trafficDetailDays,
   trafficSegments,
 } from "../data/mockData.js";
 
@@ -39,6 +44,8 @@ const flowTitles = {
   map: "交互地图攻略",
   booking: "酒店饭店评价",
   bookingDetail: "详情预定",
+  transportDetail: "交通详情",
+  optionList: "全部选择",
   final: "最终行程",
 };
 
@@ -66,9 +73,22 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
   const [selectedCity, setSelectedCity] = useState(destinationIdeas[0].city);
   const [selectedAttraction, setSelectedAttraction] = useState(destinationIdeas[0].attractions[0]);
   const [planMode, setPlanMode] = useState("");
+  const [selectedDay, setSelectedDay] = useState("D1");
   const [selectedNode, setSelectedNode] = useState(itineraryMapNodes[1]);
+  const [selectedRegion, setSelectedRegion] = useState(simpleMapRegions[0]);
+  const [selectedSegment, setSelectedSegment] = useState(trafficSegments[0]);
   const [selectedBooking, setSelectedBooking] = useState(bookingOptions[0]);
   const [reservedItem, setReservedItem] = useState("");
+  const [buddyPanelOpen, setBuddyPanelOpen] = useState(false);
+  const [buddyInput, setBuddyInput] = useState("");
+  const [buddyResponseStage, setBuddyResponseStage] = useState("idle");
+  const [mapRefreshKey, setMapRefreshKey] = useState(0);
+  const [isRebuildingPlan, setIsRebuildingPlan] = useState(false);
+  const [chosenSimplePlaces, setChosenSimplePlaces] = useState([]);
+  const [chosenDetailedSpots, setChosenDetailedSpots] = useState(() =>
+    itineraryMapNodes.filter((node) => node.type === "spot").map((node) => node.name),
+  );
+  const [selectedOptionListType, setSelectedOptionListType] = useState("spot");
 
   const cityOptions = destinationIdeas.slice(0, 2);
   const buddyName = buddySettings?.name ?? "小旅";
@@ -83,6 +103,28 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     [selectedNode],
   );
 
+  const selectedNodeType = selectedNode.type === "hotel" ? "hotel" : selectedNode.type === "food" ? "food" : "spot";
+
+  const dayNodes = useMemo(
+    () => itineraryMapNodes.filter((node) => node.day === selectedDay),
+    [selectedDay],
+  );
+
+  const dayRegions = useMemo(
+    () => simpleMapRegions.filter((region) => region.day === selectedDay),
+    [selectedDay],
+  );
+
+  const daySegments = useMemo(
+    () => trafficSegments.filter((segment) => segment.day === selectedDay),
+    [selectedDay],
+  );
+
+  const selectedTrafficDay = useMemo(
+    () => trafficDetailDays.find((day) => day.id === selectedDay),
+    [selectedDay],
+  );
+
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
       document.querySelector(".screen")?.scrollTo({ top: 0, left: 0 });
@@ -90,6 +132,16 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
 
     return () => window.cancelAnimationFrame(frameId);
   }, [flow]);
+
+  useEffect(() => {
+    const nextNode = itineraryMapNodes.find((node) => node.day === selectedDay);
+    const nextRegion = simpleMapRegions.find((region) => region.day === selectedDay);
+    const nextSegment = trafficSegments.find((segment) => segment.day === selectedDay);
+
+    if (nextNode) setSelectedNode(nextNode);
+    if (nextRegion) setSelectedRegion(nextRegion);
+    if (nextSegment) setSelectedSegment(nextSegment);
+  }, [selectedDay]);
 
   const openCitySpots = (city) => {
     const destination = destinationIdeas.find((item) => item.city === city) ?? destinationIdeas[0];
@@ -112,6 +164,86 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     if (booking) setSelectedBooking(booking);
   };
 
+  const handleBuddyRequest = () => {
+    if (!buddyInput.trim()) {
+      showToast("先告诉小旅你想怎么改攻略");
+      return;
+    }
+
+    setBuddyResponseStage("planning");
+    setIsRebuildingPlan(true);
+    window.setTimeout(() => {
+      setMapRefreshKey((key) => key + 1);
+      setBuddyResponseStage("done");
+      setBuddyPanelOpen(false);
+      setIsRebuildingPlan(false);
+      showToast("已经重构攻略，看看这次满意吗~");
+    }, 1200);
+  };
+
+  const openOptionDetail = (item) => {
+    const detail = mapOptionDetails[item.name] ?? {
+      type: selectedNodeType === "hotel" ? "酒店" : selectedNodeType === "food" ? "饭店" : "景点",
+      rating: "4.5",
+      price: item.meta?.split("·")[0]?.trim() ?? "视选择而定",
+      package: item.tag,
+      detail: item.meta,
+    };
+
+    setSelectedBooking({
+      name: item.name,
+      ...detail,
+    });
+    setFlow("bookingDetail");
+  };
+
+  const chooseDetailedOption = (item) => {
+    const detail = mapOptionDetails[item.name] ?? {};
+    setSelectedNode((node) => ({
+      ...node,
+      name: item.name,
+      meta: item.meta,
+      cost: detail.price ? `预算：${detail.price}` : node.cost,
+      tip: detail.detail ?? node.tip,
+    }));
+  };
+
+  const toggleDetailedSpot = (item) => {
+    setChosenDetailedSpots((spots) => {
+      if (spots.includes(item.name)) {
+        return spots.filter((name) => name !== item.name);
+      }
+
+      return [...spots, item.name];
+    });
+  };
+
+  const renderDetailedOptionAction = (item) => {
+    if (selectedNodeType === "spot") {
+      const isChosen = chosenDetailedSpots.includes(item.name);
+      return (
+        <button className={isChosen ? "active" : ""} type="button" onClick={() => toggleDetailedSpot(item)}>
+          {isChosen ? "从路线移除" : "加入路线"}
+        </button>
+      );
+    }
+
+    return (
+      <button type="button" onClick={() => chooseDetailedOption(item)}>
+        换成这个
+      </button>
+    );
+  };
+
+  const toggleSimplePlace = (place) => {
+    setChosenSimplePlaces((places) => {
+      const exists = places.includes(place.name);
+      if (exists) return places.filter((name) => name !== place.name);
+      showToast(`已加入攻略~旅程中会去${place.name}的~`);
+      return [...places, place.name];
+    });
+  };
+
   const goBack = () => {
     const backMap = {
       spots: "chat",
@@ -119,7 +251,9 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
       strategy: "chat",
       map: "strategy",
       booking: "map",
-      bookingDetail: "booking",
+      bookingDetail: "map",
+      transportDetail: "map",
+      optionList: "map",
       final: "map",
     };
     setFlow(backMap[flow] ?? "chat");
@@ -286,7 +420,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
           <div className="mode-choice-list">
             {planningModes.map((item) => (
               <button
-                className={item.id === planMode ? "mode-choice active" : "mode-choice"}
+                className={`mode-choice mode-choice-${item.id}${item.id === planMode ? " active" : ""}`}
                 key={item.id}
                 type="button"
                 onClick={() => setPlanMode(item.id)}
@@ -296,10 +430,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
               </button>
             ))}
           </div>
-          <div className="preference-box">
-            <span>也可以先补充偏好</span>
-            <p>少排队、晚餐一人友好、晚上尽量沿主路回酒店。</p>
-          </div>
+          
           <button
             className="primary-button full"
             type="button"
@@ -318,115 +449,277 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
   }
 
   if (flow === "map") {
+    const isSimpleMode = planMode === "simple";
+
     return (
       <div className="page-stack pretrip-page">
         <PageHeader />
         <section className="interactive-map-card flow-page-card">
           <div className="section-title">
             <div>
-              <span className="eyebrow">{selectedDestination.days}</span>
-              <h3>点击节点或路段调整</h3>
+              <span className="eyebrow">{selectedDestination.days} · {isSimpleMode ? "简约方向" : "详细攻略"}</span>
+              <h3>{isSimpleMode ? "先确定想活动的区域" : "点击节点或路段调整"}</h3>
             </div>
-            <span className="time-chip">3天2夜</span>
+            <label className="day-select">
+              <span>日期</span>
+              <select value={selectedDay} onChange={(event) => setSelectedDay(event.target.value)}>
+                {planningDays.map((day) => (
+                  <option value={day.id} key={day.id}>
+                    {day.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
-          <div className="planner-map planner-map-detailed" aria-label="交互式地图原型">
-            <svg viewBox="0 0 320 230" role="presentation">
-              <path className="map-water" d="M235 0 C250 52, 216 88, 247 129 S278 194, 236 230 L320 230 L320 0 Z" />
-              <path className="map-neighborhood" d="M18 182 C54 134, 88 154, 122 104 S190 56, 252 88" />
-              <path className="map-street secondary" d="M34 48 C78 78, 110 74, 150 44 S214 22, 284 52" />
-              <path className="map-street secondary" d="M44 206 C94 178, 136 186, 180 154 S236 130, 292 158" />
-              <path className="route-day-one" d="M58 152 C88 98, 120 70, 184 110" />
-              <path className="route-day-two" d="M184 110 C220 72, 246 58, 270 142" />
-            </svg>
-            {itineraryMapNodes.map((node, index) => {
-              const Icon = nodeIcons[node.icon] ?? nodeIcons[node.type] ?? MapPinned;
-              return (
-                <button
-                  className={`planner-node planner-node-${node.type}${selectedNode.name === node.name ? " active" : ""}`}
-                  key={node.name}
-                  style={{ left: `${node.x}%`, top: `${node.y}%` }}
-                  type="button"
-                  onClick={() => selectMapNode(node)}
-                  aria-label={node.name}
-                >
-                  <Icon size={14} />
-                  <span>{index + 1}</span>
-                </button>
-              );
-            })}
-            <div className="map-api-note">
-              <Navigation size={14} />
-              <span>可替换为地图 API 图层</span>
-            </div>
-          </div>
-          <div className={`node-detail map-node-card node-detail-${selectedNode.type}`}>
-            <div className="map-node-card-main">
-              <div>
-                <span>{selectedNode.day} · {selectedNode.time}</span>
-                <strong>{selectedNode.name}</strong>
-                <p>{selectedNode.meta}</p>
+
+          {isSimpleMode ? (
+            <>
+              <div className={`planner-map simple-planner-map map-refresh-${mapRefreshKey}`} aria-label="简约路线地图">
+                <svg viewBox="0 0 320 230" role="presentation">
+                  <path className="simple-route" d={simpleRoutePathByDay[selectedDay]} />
+                </svg>
+                {dayRegions.map((region) => (
+                  <button
+                    className={`simple-region-node${selectedRegion.id === region.id ? " active" : ""}`}
+                    key={region.id}
+                    style={{ left: `${region.x}%`, top: `${region.y}%` }}
+                    type="button"
+                    onClick={() => setSelectedRegion(region)}
+                    aria-label={region.title}
+                  />
+                ))}
               </div>
-              <span className="map-node-type">
-                {selectedNode.type === "hotel" ? "住宿" : selectedNode.type === "food" ? "餐饮" : "景点"}
-              </span>
-            </div>
-            <div className="node-info-grid">
-              <div>
-                <span>位置</span>
-                <strong>{selectedNode.address}</strong>
+              <section className="simple-region-card">
+                <span className="eyebrow">{selectedRegion.tone}</span>
+                <h3>{selectedRegion.title}</h3>
+                <p>{selectedRegion.summary}</p>
+                <div className="simple-place-grid">
+                  {selectedRegion.places.map((place) => (
+                    <article key={place.name} className="simple-place-card">
+                      <span>{place.tag}</span>
+                      <strong>{place.name}</strong>
+                      <small>{place.meta}</small>
+                      <div className="option-card-actions">
+                        <button type="button" onClick={() => openOptionDetail(place)}>
+                          详情
+                        </button>
+                        <button
+                          className={chosenSimplePlaces.includes(place.name) ? "active" : ""}
+                          type="button"
+                          onClick={() => toggleSimplePlace(place)}
+                        >
+                          {chosenSimplePlaces.includes(place.name) ? "不想去了" : "想去这里"}
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            </>
+          ) : (
+            <>
+              <div className={`planner-map planner-map-detailed map-refresh-${mapRefreshKey}`} aria-label="详细路线地图">
+                <svg viewBox="0 0 320 230" role="presentation">
+                  <path className="map-water" d="M235 0 C250 52, 216 88, 247 129 S278 194, 236 230 L320 230 L320 0 Z" />
+                  <path className="map-neighborhood" d="M18 182 C54 134, 88 154, 122 104 S190 56, 252 88" />
+                  <path className="map-street secondary" d="M34 48 C78 78, 110 74, 150 44 S214 22, 284 52" />
+                  <path className="map-street secondary" d="M44 206 C94 178, 136 186, 180 154 S236 130, 292 158" />
+                  <path className={`route-day-${selectedDay.toLowerCase()}`} d={detailedRoutePathByDay[selectedDay]} />
+                </svg>
+                {daySegments.map((segment) => (
+                  <button
+                    className={`map-route-hit map-route-hit-${segment.id}${selectedSegment.id === segment.id ? " active" : ""}`}
+                    key={segment.id}
+                    type="button"
+                    onClick={() => setSelectedSegment(segment)}
+                    aria-label={`${segment.from} 到 ${segment.to}`}
+                  />
+                ))}
+                {dayNodes.map((node, index) => {
+                  const Icon = nodeIcons[node.icon] ?? nodeIcons[node.type] ?? MapPinned;
+                  return (
+                    <button
+                      className={`planner-node planner-node-${node.type}${selectedNode.name === node.name ? " active" : ""}`}
+                      key={node.name}
+                      style={{ left: `${node.x}%`, top: `${node.y}%` }}
+                      type="button"
+                      onClick={() => selectMapNode(node)}
+                      aria-label={node.name}
+                    >
+                      <Icon size={14} />
+                      <span>{index + 1}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <div>
-                <span>时间</span>
-                <strong>{selectedNode.duration}</strong>
+              <div className={`node-detail map-node-card node-detail-${selectedNode.type}`}>
+                <div className="map-node-card-main">
+                  <div>
+                    <span>{selectedNode.day} · {selectedNode.time}</span>
+                    <strong>{selectedNode.name}</strong>
+                    <p>{selectedNode.meta}</p>
+                  </div>
+                  <span className="map-node-type">
+                    {selectedNode.type === "hotel" ? "住宿" : selectedNode.type === "food" ? "餐饮" : "景点"}
+                  </span>
+                </div>
+                <div className="node-info-grid">
+                  <div>
+                    <span>位置</span>
+                    <strong>{selectedNode.address}</strong>
+                  </div>
+                  <div>
+                    <span>时间</span>
+                    <strong>{selectedNode.duration}</strong>
+                  </div>
+                  <div>
+                    <span>预算</span>
+                    <strong>{selectedNode.cost}</strong>
+                  </div>
+                  <div>
+                    <span>安全</span>
+                    <strong>{selectedNode.safety}</strong>
+                  </div>
+                </div>
+                <div className="node-tip-row">
+                  <Info size={15} />
+                  <p>{selectedNode.tip}</p>
+                </div>
+                <div className="alternative-strip">
+                  <span>{selectedNode.alternativesTitle}</span>
+                  <div>
+                    {selectedNode.alternatives.map((item) => (
+                      <article key={item.name}>
+                        <strong>{item.name}</strong>
+                        <small>{item.tag} · {item.meta}</small>
+                        <div className="option-card-actions">
+                        <button type="button" onClick={() => openOptionDetail(item)}>
+                          详情
+                        </button>
+                          {renderDetailedOptionAction(item)}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+                <div className="node-card-actions">
+                  {selectedNodeType === "spot" && (
+                    <button
+                      type="button"
+                      onClick={() => toggleDetailedSpot({ name: selectedNode.name })}
+                    >
+                      <X size={14} /> {chosenDetailedSpots.includes(selectedNode.name) ? "从路线移除" : "加入路线"}
+                    </button>
+                  )}
+                  <button className="area-remove-button" type="button" onClick={() => showToast("这一块已从攻略方向里排除")}>
+                    <X size={14} /> 这一块都不想去
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedOptionListType(selectedNodeType);
+                      setFlow("optionList");
+                    }}
+                  >
+                    查看全部
+                  </button>
+                  {selectedNodeBooking && (
+                    <button
+                      className="primary-button compact"
+                      type="button"
+                      onClick={() => {
+                        setSelectedBooking(selectedNodeBooking);
+                        setFlow("bookingDetail");
+                      }}
+                    >
+                      查看详情
+                    </button>
+                  )}
+                </div>
               </div>
-              <div>
-                <span>预算</span>
-                <strong>{selectedNode.cost}</strong>
-              </div>
-              <div>
-                <span>安全</span>
-                <strong>{selectedNode.safety}</strong>
-              </div>
-            </div>
-            <div className="node-tip-row">
-              <Info size={15} />
-              <p>{selectedNode.tip}</p>
-            </div>
-            <div className="node-card-actions">
-              <button type="button" onClick={() => showToast("小旅已自动替换并重排路线")}>
-                <X size={14} /> 不想去
+              <button className="route-summary-card" type="button" onClick={() => setFlow("transportDetail")}>
+                <div>
+                  <span className="eyebrow">当前路段</span>
+                  <strong>{selectedSegment.from} → {selectedSegment.to}</strong>
+                  <p>{selectedSegment.method} · {selectedSegment.note}</p>
+                </div>
+                <ChevronRight size={18} />
               </button>
-              {selectedNodeBooking && (
-                <button
-                  className="primary-button compact"
-                  type="button"
-                  onClick={() => {
-                    setSelectedBooking(selectedNodeBooking);
-                    setFlow("bookingDetail");
-                  }}
-                >
-                  查看详情
+              <div className="traffic-list">
+                {daySegments.map((segment) => (
+                  <button
+                    className={selectedSegment.id === segment.id ? "active" : ""}
+                    key={segment.id}
+                    type="button"
+                    onClick={() => setSelectedSegment(segment)}
+                  >
+                    <Route size={15} />
+                    <span>{segment.from} → {segment.to}</span>
+                    <strong>{segment.method}</strong>
+                  </button>
+                ))}
+                <button className="traffic-detail-entry" type="button" onClick={() => setFlow("transportDetail")}>
+                  <ChevronRight size={15} />
+                  <span>查看每天的交通详情</span>
+                  <strong>站点/费用/时间</strong>
                 </button>
-              )}
-            </div>
-          </div>
-          <div className="traffic-list">
-            {trafficSegments.map((segment) => (
-              <button key={`${segment.from}-${segment.to}`} type="button" onClick={() => showToast(segment.note)}>
-                <Route size={15} />
-                <span>{segment.from} → {segment.to}</span>
-                <strong>{segment.method}</strong>
-              </button>
-            ))}
-          </div>
-          <div className="floating-ai-window">
-            <Bot size={17} />
-            <span>点击酒店或饭店节点会跳转到评价、均价和套餐页。</span>
-          </div>
+              </div>
+            </>
+          )}
           <button className="primary-button full flow-bottom-action" type="button" onClick={() => setFlow("final")}>
             确定攻略，查看最终行程
           </button>
         </section>
+        <div className="planner-buddy-assistant">
+          {buddyPanelOpen && (
+            <section className="planner-buddy-panel">
+              <div>
+                <span className="eyebrow">{buddyName}</span>
+                <strong>想怎么重构这版攻略？</strong>
+                <p>可以直接说偏好，比如少走路、酒店换到中山路、第二天不要骑行、想多留鼓浪屿时间。</p>
+              </div>
+              <div className="buddy-confirm-list">
+                <span>我会先确认：</span>
+                <button type="button">住宿范围</button>
+                <button type="button">每日强度</button>
+                <button type="button">交通偏好</button>
+              </div>
+              <div className="buddy-chat-box">
+                <input
+                  value={buddyInput}
+                  onChange={(event) => setBuddyInput(event.target.value)}
+                  placeholder="例如：第二天少骑车，多安排海边咖啡"
+                  aria-label="输入攻略修改需求"
+                />
+                <button type="button" onClick={handleBuddyRequest}>
+                  发送
+                </button>
+              </div>
+              {buddyResponseStage === "planning" && (
+                <p className="buddy-reply">好的，我会按照你的需求重构攻略。先把路线强度、住宿范围和交通方式一起调整。</p>
+              )}
+              {buddyResponseStage === "done" && (
+                <p className="buddy-reply done">已经重构攻略，看看这次满意吗~</p>
+              )}
+            </section>
+          )}
+          <button className="planner-buddy-button" type="button" onClick={() => setBuddyPanelOpen((open) => !open)}>
+            <span className="chat-buddy-avatar buddy-avatar-round-bot" aria-hidden="true">
+              <span className="chat-avatar-head" />
+              <span className="chat-avatar-eyes" />
+              <span className="chat-avatar-body" />
+            </span>
+            <strong>{buddyPanelOpen ? "收起" : "找小旅改"}</strong>
+          </button>
+        </div>
+        {isRebuildingPlan && (
+          <div className="planner-rebuild-overlay" role="status" aria-live="polite">
+            <div>
+              <span className="rebuild-spinner" />
+              <strong>重新规划中……</strong>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -459,6 +752,81 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
           <button className="primary-button full flow-bottom-action" type="button" onClick={() => setFlow("bookingDetail")}>
             查看详情并预定
           </button>
+        </section>
+      </div>
+    );
+  }
+
+  if (flow === "transportDetail") {
+    return (
+      <div className="page-stack pretrip-page">
+        <PageHeader />
+        <section className="transport-detail-card flow-page-card">
+          <div className="section-title">
+            <div>
+              <span className="eyebrow">每天怎么走</span>
+              <h3>交通方式、站点和预算</h3>
+            </div>
+          </div>
+          <div className="transport-day-list">
+            {[selectedTrafficDay].filter(Boolean).map((day) => (
+              <article className="transport-day" key={day.day}>
+                <span>{day.day}</span>
+                <h3>{day.title}</h3>
+                <div className="transport-segment-list">
+                  {day.segments.map((segment) => (
+                    <div className="transport-segment" key={`${day.day}-${segment.from}-${segment.to}`}>
+                      <div>
+                        <strong>{segment.from} → {segment.to}</strong>
+                        <small>{segment.method} · {segment.time} · {segment.cost}</small>
+                      </div>
+                      <ol>
+                        {segment.steps.map((step) => (
+                          <li key={step}>{step}</li>
+                        ))}
+                      </ol>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  if (flow === "optionList") {
+    const optionList = mapOptionCatalog[selectedOptionListType] ?? [];
+    const optionTitle = selectedOptionListType === "hotel" ? "可选酒店" : selectedOptionListType === "food" ? "可选饭店" : "可选景点";
+
+    return (
+      <div className="page-stack pretrip-page">
+        <PageHeader />
+        <section className="option-list-card flow-page-card">
+          <div className="section-title">
+            <div>
+              <span className="eyebrow">{selectedDestination.city}</span>
+              <h3>{optionTitle}</h3>
+            </div>
+          </div>
+          <div className="option-list">
+            {optionList.map((item) => (
+              <article key={item.name} className="option-list-item">
+                <div>
+                  <span>{item.tag}</span>
+                  <strong>{item.name}</strong>
+                  <p>{item.meta}</p>
+                </div>
+                <div className="option-card-actions">
+                  <button type="button" onClick={() => openOptionDetail(item)}>
+                    详情
+                  </button>
+                  {renderDetailedOptionAction(item)}
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
       </div>
     );
