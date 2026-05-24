@@ -1,17 +1,22 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
+  Bike,
   Bot,
   CalendarDays,
   CheckCircle2,
   ChevronRight,
+  Compass,
   History,
   Hotel,
+  Info,
   MapPinned,
   Mic,
+  Navigation,
   Plus,
   Route,
   Send,
+  Shell,
   Utensils,
   Wand2,
   X,
@@ -38,9 +43,12 @@ const flowTitles = {
 };
 
 const nodeIcons = {
-  hotel: Hotel,
+  bike: Bike,
   food: Utensils,
+  hotel: Hotel,
+  seafood: Shell,
   spot: MapPinned,
+  street: Compass,
 };
 
 function BuddyChatAvatar({ appearance = "round-bot" }) {
@@ -70,6 +78,19 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     [selectedCity],
   );
 
+  const selectedNodeBooking = useMemo(
+    () => bookingOptions.find((item) => item.name === selectedNode.name),
+    [selectedNode],
+  );
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      document.querySelector(".screen")?.scrollTo({ top: 0, left: 0 });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [flow]);
+
   const openCitySpots = (city) => {
     const destination = destinationIdeas.find((item) => item.city === city) ?? destinationIdeas[0];
     setSelectedCity(destination.city);
@@ -85,15 +106,10 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     setFlow("strategy");
   };
 
-  const openBookingFromNode = (node) => {
+  const selectMapNode = (node) => {
     setSelectedNode(node);
-    if (node.type !== "hotel" && node.type !== "food") {
-      showToast("已选中景点节点，可在下方查看设施和替换建议");
-      return;
-    }
-    const booking = bookingOptions.find((item) => item.type === (node.type === "hotel" ? "酒店" : "饭店")) ?? bookingOptions[0];
-    setSelectedBooking(booking);
-    setFlow("booking");
+    const booking = bookingOptions.find((item) => item.name === node.name);
+    if (booking) setSelectedBooking(booking);
   };
 
   const goBack = () => {
@@ -313,36 +329,86 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
             </div>
             <span className="time-chip">3天2夜</span>
           </div>
-          <div className="planner-map" aria-label="交互式地图原型">
-            <svg viewBox="0 0 300 150" role="presentation">
-              <path className="route-day-one" d="M28 112 C70 54, 112 116, 154 62 S238 42, 268 72" />
-              <path className="route-day-two" d="M42 36 C94 24, 112 82, 170 98 S238 122, 282 40" />
+          <div className="planner-map planner-map-detailed" aria-label="交互式地图原型">
+            <svg viewBox="0 0 320 230" role="presentation">
+              <path className="map-water" d="M235 0 C250 52, 216 88, 247 129 S278 194, 236 230 L320 230 L320 0 Z" />
+              <path className="map-neighborhood" d="M18 182 C54 134, 88 154, 122 104 S190 56, 252 88" />
+              <path className="map-street secondary" d="M34 48 C78 78, 110 74, 150 44 S214 22, 284 52" />
+              <path className="map-street secondary" d="M44 206 C94 178, 136 186, 180 154 S236 130, 292 158" />
+              <path className="route-day-one" d="M58 152 C88 98, 120 70, 184 110" />
+              <path className="route-day-two" d="M184 110 C220 72, 246 58, 270 142" />
             </svg>
             {itineraryMapNodes.map((node, index) => {
-              const Icon = nodeIcons[node.type] ?? MapPinned;
+              const Icon = nodeIcons[node.icon] ?? nodeIcons[node.type] ?? MapPinned;
               return (
                 <button
-                  className={selectedNode.name === node.name ? "planner-node active" : "planner-node"}
+                  className={`planner-node planner-node-${node.type}${selectedNode.name === node.name ? " active" : ""}`}
                   key={node.name}
-                  style={{ left: `${14 + index * 18}%`, top: `${index % 2 === 0 ? 22 : 58}%` }}
+                  style={{ left: `${node.x}%`, top: `${node.y}%` }}
                   type="button"
-                  onClick={() => openBookingFromNode(node)}
+                  onClick={() => selectMapNode(node)}
                   aria-label={node.name}
                 >
                   <Icon size={14} />
+                  <span>{index + 1}</span>
                 </button>
               );
             })}
-          </div>
-          <div className="node-detail">
-            <div>
-              <span>{selectedNode.day} · {selectedNode.time}</span>
-              <strong>{selectedNode.name}</strong>
-              <p>{selectedNode.meta}</p>
+            <div className="map-api-note">
+              <Navigation size={14} />
+              <span>可替换为地图 API 图层</span>
             </div>
-            <button type="button" onClick={() => showToast("小旅已自动替换并重排路线")}>
-              <X size={14} /> 不想去
-            </button>
+          </div>
+          <div className={`node-detail map-node-card node-detail-${selectedNode.type}`}>
+            <div className="map-node-card-main">
+              <div>
+                <span>{selectedNode.day} · {selectedNode.time}</span>
+                <strong>{selectedNode.name}</strong>
+                <p>{selectedNode.meta}</p>
+              </div>
+              <span className="map-node-type">
+                {selectedNode.type === "hotel" ? "住宿" : selectedNode.type === "food" ? "餐饮" : "景点"}
+              </span>
+            </div>
+            <div className="node-info-grid">
+              <div>
+                <span>位置</span>
+                <strong>{selectedNode.address}</strong>
+              </div>
+              <div>
+                <span>时间</span>
+                <strong>{selectedNode.duration}</strong>
+              </div>
+              <div>
+                <span>预算</span>
+                <strong>{selectedNode.cost}</strong>
+              </div>
+              <div>
+                <span>安全</span>
+                <strong>{selectedNode.safety}</strong>
+              </div>
+            </div>
+            <div className="node-tip-row">
+              <Info size={15} />
+              <p>{selectedNode.tip}</p>
+            </div>
+            <div className="node-card-actions">
+              <button type="button" onClick={() => showToast("小旅已自动替换并重排路线")}>
+                <X size={14} /> 不想去
+              </button>
+              {selectedNodeBooking && (
+                <button
+                  className="primary-button compact"
+                  type="button"
+                  onClick={() => {
+                    setSelectedBooking(selectedNodeBooking);
+                    setFlow("bookingDetail");
+                  }}
+                >
+                  查看详情
+                </button>
+              )}
+            </div>
           </div>
           <div className="traffic-list">
             {trafficSegments.map((segment) => (

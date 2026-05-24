@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Bell, History } from "lucide-react";
+import { ArrowLeft, Bell, History } from "lucide-react";
 import BottomNav from "./components/BottomNav.jsx";
 import FloatingBuddy from "./components/FloatingBuddy.jsx";
 import StatusBar from "./components/StatusBar.jsx";
@@ -46,6 +46,7 @@ export default function App() {
   const [buddyReady, setBuddyReady] = useState(Boolean(storedState.buddyReady));
   const [buddySettings, setBuddySettings] = useState(storedState.buddySettings ?? buddyProfile);
   const [confirmedTrips, setConfirmedTrips] = useState(storedState.confirmedTrips ?? confirmedCompanionTrips);
+  const [pageHistory, setPageHistory] = useState([]);
   const [toast, setToast] = useState("");
 
   const effectivePage = isAuthenticated && !buddyReady ? "buddySetup" : activePage;
@@ -61,9 +62,30 @@ export default function App() {
     window.__fellowTripToast = window.setTimeout(() => setToast(""), 2200);
   };
 
+  const navigateToPage = (nextPage, options = {}) => {
+    if (nextPage === activePage) return;
+
+    if (options.reset) {
+      setPageHistory([]);
+    } else if (!options.replace) {
+      setPageHistory((history) => [...history, activePage].slice(-8));
+    }
+
+    setActivePage(nextPage);
+  };
+
+  const handleBack = () => {
+    const previousPage = pageHistory[pageHistory.length - 1];
+    if (!previousPage) return;
+
+    setPageHistory((history) => history.slice(0, -1));
+    setActivePage(previousPage);
+  };
+
   const handleAuthSuccess = () => {
     setIsAuthenticated(true);
     saveStoredState({ isAuthenticated: true });
+    setPageHistory([]);
     setActivePage(buddyReady ? "home" : "buddySetup");
     showToast(buddyReady ? "欢迎回来，已读取本机记忆" : "登录成功，先创建你的旅行搭子");
   };
@@ -81,6 +103,7 @@ export default function App() {
       buddySettings: mergedSettings,
       confirmedTrips,
     });
+    setPageHistory([]);
     setActivePage(effectivePage === "buddySettings" ? "profile" : "home");
     showToast(effectivePage === "buddySettings" ? "搭子设置已保存" : "小旅已准备好和你规划下一段旅程");
   };
@@ -110,7 +133,7 @@ export default function App() {
       saveStoredState({ confirmedTrips: nextTrips });
       return nextTrips;
     });
-    setActivePage("plan");
+    navigateToPage("plan");
     showToast("行程已加入陪伴列表");
   };
 
@@ -124,6 +147,7 @@ export default function App() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setPageHistory([]);
     setActivePage("home");
     saveStoredState({ isAuthenticated: false });
     showToast("已退出登录，本机搭子记忆仍保留");
@@ -143,18 +167,26 @@ export default function App() {
 
   const shouldShowNav = buddyReady && effectivePage !== "buddySettings";
   const shouldShowBuddy = buddyReady && effectivePage !== "buddySettings" && effectivePage !== "home";
+  const shouldShowHeaderBack = pageHistory.length > 0 && effectivePage !== "home" && effectivePage !== "buddySetup";
 
   return (
     <main className="stage">
       <section className="phone-shell" aria-label="FellowTrip mobile prototype">
         <StatusBar />
         <div className="app-header">
-          <div>
-            <span className="eyebrow">FellowTrip</span>
-            <h1>{effectivePage === "home" ? "旅途前规划" : pageTitle}</h1>
+          <div className="app-header-title">
+            {shouldShowHeaderBack && (
+              <button className="header-back-button" type="button" onClick={handleBack} aria-label="返回上一页">
+                <ArrowLeft size={17} />
+              </button>
+            )}
+            <div>
+              <span className="eyebrow">FellowTrip</span>
+              <h1>{effectivePage === "home" ? "旅途前规划" : pageTitle}</h1>
+            </div>
           </div>
           <div className="app-header-actions">
-            <button className="history-record-button" type="button" onClick={() => setActivePage("memory")}>
+            <button className="history-record-button" type="button" onClick={() => navigateToPage("memory")}>
               <History size={16} />
               <span>历史记录</span>
             </button>
@@ -185,7 +217,7 @@ export default function App() {
             <HomePage
               mode={mode}
               setMode={setMode}
-              setActivePage={setActivePage}
+              setActivePage={navigateToPage}
               showToast={showToast}
               onConfirmTrip={handleConfirmTrip}
               buddySettings={buddySettings}
@@ -194,7 +226,7 @@ export default function App() {
           {effectivePage === "plan" && (
             <PlanPage
               confirmedTrips={confirmedTrips}
-              setActivePage={setActivePage}
+              setActivePage={navigateToPage}
               showToast={showToast}
               updateTripStatus={updateTripStatus}
             />
@@ -204,7 +236,7 @@ export default function App() {
           {effectivePage === "profile" && (
             <ProfilePage
               buddySettings={buddySettings}
-              onEditBuddy={() => setActivePage("buddySettings")}
+              onEditBuddy={() => navigateToPage("buddySettings")}
               onLogout={handleLogout}
               showToast={showToast}
             />
@@ -218,7 +250,9 @@ export default function App() {
             onClick={(message = "我在~有什么想去的地方？") => showToast(message)}
           />
         )}
-        {shouldShowNav && <BottomNav activePage={effectivePage} setActivePage={setActivePage} />}
+        {shouldShowNav && (
+          <BottomNav activePage={effectivePage} setActivePage={(page) => navigateToPage(page, { reset: true })} />
+        )}
         {toast && <div className="toast">{toast}</div>}
       </section>
     </main>
