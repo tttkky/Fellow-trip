@@ -1680,7 +1680,7 @@ article.destination-card {
   position: relative;
   display: grid;
   gap: 6px;
-  min-height: 84px;
+  min-height: 128px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: #fff;
@@ -1697,6 +1697,12 @@ article.destination-card {
 .spot-choice strong {
   color: var(--text);
   font-size: 14px;
+}
+
+.spot-choice small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .spot-choice svg {
@@ -1732,6 +1738,94 @@ article.destination-card {
 
 .large-spot-detail strong {
   font-size: 24px;
+}
+
+.spot-detail-hero {
+  position: relative;
+  min-height: 260px;
+  display: grid;
+  align-content: space-between;
+  overflow: hidden;
+  border-radius: 18px;
+  background-color: #eef3ff;
+  background-position: center;
+  background-size: cover;
+  padding: 14px;
+}
+
+.spot-detail-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(24, 28, 46, 0.12), rgba(24, 28, 46, 0.72));
+}
+
+.spot-detail-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.spot-detail-hero strong {
+  display: block;
+  color: #fff;
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+.spot-detail-hero p {
+  margin-top: 7px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.spot-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.spot-detail-grid div {
+  border-radius: 14px;
+  background: #f7f9ff;
+  padding: 11px;
+}
+
+.spot-detail-grid span,
+.spot-detail-grid strong {
+  display: block;
+}
+
+.spot-detail-grid span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.spot-detail-grid strong {
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.spot-detail-note {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 8px;
+  align-items: start;
+  margin-top: 12px;
+  border-radius: 14px;
+  color: var(--primary-deep);
+  background: #f0f3ff;
+  padding: 11px;
+}
+
+.spot-detail-note p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .flow-bottom-action {
@@ -1990,18 +2084,18 @@ article.destination-card {
 
 .simple-place-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .simple-place-card {
   display: grid;
-  gap: 5px;
-  min-height: 132px;
+  gap: 7px;
+  min-height: 118px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: #fff;
-  padding: 10px;
+  padding: 12px;
   text-align: left;
 }
 
@@ -2013,13 +2107,13 @@ article.destination-card {
 
 .simple-place-card strong {
   color: var(--text);
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .simple-place-card small {
   color: var(--muted);
-  font-size: 11px;
-  line-height: 1.35;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .map-route-hit {
@@ -2027,13 +2121,8 @@ article.destination-card {
   z-index: 2;
   height: 30px;
   border-radius: 999px;
-  background: rgba(255, 190, 123, 0.12);
+  background: transparent;
   transform-origin: center;
-}
-
-.map-route-hit.active {
-  background: rgba(255, 190, 123, 0.38);
-  box-shadow: 0 0 0 3px rgba(255, 190, 123, 0.22);
 }
 
 .map-route-hit-hotel-shapowei {
@@ -2195,6 +2284,62 @@ article.destination-card {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+}
+
+.node-current-detail-button {
+  width: 100%;
+}
+
+.selected-spot-strip {
+  display: grid;
+  gap: 8px;
+}
+
+.selected-spot-strip > span {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.selected-spot-strip > div {
+  display: grid;
+  gap: 12px;
+}
+
+.route-spot-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fffaf0;
+  padding: 16px;
+}
+
+.route-spot-card.selected {
+  border-color: rgba(217, 162, 76, 0.42);
+  background: #fffaf0;
+}
+
+.route-spot-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.route-spot-actions button {
+  min-height: 40px;
+  border-radius: 13px;
+  color: var(--primary-deep);
+  background: #f0f3ff;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.route-spot-actions button.active {
+  color: #c45500;
+  background: #fff1df;
 }
 
 .alternative-strip {
@@ -2360,11 +2505,6 @@ article.destination-card {
   color: var(--primary);
   padding: 0 10px;
   text-align: left;
-}
-
-.traffic-list button.active {
-  border: 1px solid rgba(255, 190, 123, 0.62);
-  background: #fff8ea;
 }
 
 .traffic-list .traffic-detail-entry {
@@ -2617,7 +2757,8 @@ article.destination-card {
   z-index: 40;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.97);
+  background: rgba(45, 42, 38, 0.36);
+  pointer-events: all;
 }
 
 .planner-rebuild-overlay > div {
@@ -2657,6 +2798,49 @@ article.destination-card {
   margin-bottom: 12px;
 }
 
+.simple-final-summary {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.simple-final-summary > p,
+.simple-final-summary > small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.simple-final-summary > div {
+  display: grid;
+  gap: 10px;
+}
+
+.simple-final-summary article {
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: #fffaf0;
+  padding: 12px;
+}
+
+.simple-final-summary article span,
+.simple-final-summary article strong {
+  display: block;
+}
+
+.simple-final-summary article span {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.simple-final-summary article strong {
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 .final-day {
   display: grid;
   grid-template-columns: 12px 1fr;
@@ -2673,6 +2857,61 @@ article.destination-card {
 
 .final-map {
   margin-bottom: 12px;
+}
+
+.final-map svg path {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 9 8;
+}
+
+.final-map-node {
+  position: absolute;
+  z-index: 2;
+  width: 13px;
+  height: 13px;
+  transform: translate(-50%, -50%);
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 8px 14px rgba(76, 83, 126, 0.18);
+}
+
+.final-map-node-hotel {
+  background: #d86151;
+}
+
+.final-map-node-food {
+  background: #55a868;
+}
+
+.final-map-node-spot {
+  background: #e3aa35;
+}
+
+.final-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -2px 0 12px;
+}
+
+.final-map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  background: #fff8e6;
+  color: var(--muted);
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.final-map-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
 }
 
 .companion-page {
@@ -2778,6 +3017,23 @@ article.destination-card {
   padding: 6px 9px;
   font-size: 11px;
   font-weight: 800;
+}
+
+.trip-card-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.trip-delete-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  border-radius: 14px;
+  color: #c45500;
+  background: #fff1df;
+  font-weight: 900;
 }
 
 .companion-topbar {

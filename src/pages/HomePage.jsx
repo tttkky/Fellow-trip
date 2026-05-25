@@ -23,7 +23,6 @@ import {
   bookingOptions,
   detailedRoutePathByDay,
   destinationIdeas,
-  finalItineraryDays,
   itineraryMapNodes,
   mapOptionCatalog,
   mapOptionDetails,
@@ -58,6 +57,56 @@ const nodeIcons = {
   street: Compass,
 };
 
+const commonsImage = (fileName) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=900`;
+
+const spotImages = {
+  沙坡尾: commonsImage("Fishing boats in Shapowei, Xiamen.jpg"),
+  环岛路: commonsImage("20230131 Huandao Road, Xiamen.jpg"),
+  鼓浪屿: commonsImage("2018年的鼓浪屿.jpg"),
+  中山路: commonsImage("Xiamen Zhongshan Road Pedestrian Street.jpg"),
+  八市: commonsImage("Xiamen-Night market.jpg"),
+  南普陀: commonsImage("Nanputuo Temple, Xiamen.jpg"),
+  万石植物园: commonsImage("Cactii at Botanical Garden, Xiamen.jpg"),
+  华新路: commonsImage("Xiamen - Gulangyu - DSCF9805.jpg"),
+  厦门大学外圈: commonsImage("Xiamen University Furong Lake.JPG"),
+  黄厝海滩: commonsImage("20230131 Xiamen Huandao Road at Huangcuo Beach.jpg"),
+  曾厝垵: commonsImage("Zengcuo'an - panoramio.jpg"),
+  白城沙滩: commonsImage("Baicheng Beach, Xiamen.jpg"),
+  胡里山炮台: commonsImage("Hulishan Fortress 01.jpg"),
+  山海健康步道: commonsImage("Xiamen Mountains-to-Sea Trail 20210131.jpg"),
+  菽庄花园: commonsImage("Shuzhuang Garden 20120210.jpg"),
+  日光岩: commonsImage("Sunlight Rock, Gulangyu.jpg"),
+  皓月园: commonsImage("Haoyue Garden, Gulangyu.jpg"),
+  最美转角: commonsImage("Gulangyu, Xiamen, Fujian, China - panoramio (6).jpg"),
+  钢琴博物馆: commonsImage("Piano Museum in Gulangyu.jpg"),
+  轮渡码头外圈: commonsImage("Xiamen ferry terminal.jpg"),
+  中华城商圈: commonsImage("Xiamen Zhongshan Road Pedestrian Street.jpg"),
+  龙井村: commonsImage("Longjing tea village Hangzhou.jpg"),
+  小河直街: commonsImage("运河广场 （ 拱宸桥东边） - panoramio.jpg"),
+  西湖外圈: commonsImage("20090524 Hangzhou West Lake 7539.jpg"),
+  灵隐寺: commonsImage("20231124 Lingyin Temple 01.jpg"),
+  满觉陇: commonsImage("Longjing tea district Hangzhou.jpg"),
+  拱宸桥: commonsImage("20231122 Gongchen Bridge 03.jpg"),
+  法喜寺: commonsImage("Faxi Temple in Hangzhou (Mahavira Hall).jpg"),
+  玉林路: commonsImage("Intersection of Yulin West Road and Yulin North Road 20241007194803.jpg"),
+  人民公园: commonsImage("People's Park, Chengdu, Sichuan, China, 610041 - panoramio.jpg"),
+  宽窄巷子: commonsImage("Kuanzhaixiangzi Alleys, 201907, 01.jpg"),
+  东郊记忆: commonsImage("东郊记忆 (123423479).jpeg"),
+  锦里: commonsImage("Jinli Street 35240-Chengdu (49068155601).jpg"),
+  杜甫草堂: commonsImage("DuFuHouse.jpg"),
+  望平街: commonsImage("Wangping Street.jpg"),
+};
+
+const cityFallbackImages = {
+  厦门: commonsImage("Xiamen - View from GulangYu 20091120.jpg"),
+  杭州: commonsImage("20090524 Hangzhou West Lake 7539.jpg"),
+  成都: commonsImage("Kuanzhaixiangzi Alleys, 201907, 01.jpg"),
+};
+
+const getSpotImageUrl = (spotName, city) => {
+  return spotImages[spotName] ?? cityFallbackImages[city] ?? cityFallbackImages.厦门;
+};
+
 function BuddyChatAvatar({ appearance = "round-bot" }) {
   return (
     <span className={`chat-buddy-avatar buddy-avatar-${appearance}`} aria-hidden="true">
@@ -89,6 +138,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     itineraryMapNodes.filter((node) => node.type === "spot").map((node) => node.name),
   );
   const [selectedOptionListType, setSelectedOptionListType] = useState("spot");
+  const [spotDetailReturnFlow, setSpotDetailReturnFlow] = useState("spots");
 
   const cityOptions = destinationIdeas.slice(0, 2);
   const buddyName = buddySettings?.name ?? "小旅";
@@ -97,9 +147,18 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     () => destinationIdeas.find((item) => item.city === selectedCity) ?? destinationIdeas[0],
     [selectedCity],
   );
+  const allAttractions = useMemo(
+    () => destinationIdeas.flatMap((destination) => destination.attractions.map((spot) => ({ ...spot, city: destination.city }))),
+    [],
+  );
 
   const selectedNodeBooking = useMemo(
-    () => bookingOptions.find((item) => item.name === selectedNode.name),
+    () => {
+      const booking = bookingOptions.find((item) => item.name === selectedNode.name);
+      if (booking) return booking;
+      const detail = mapOptionDetails[selectedNode.name];
+      return detail?.type === "酒店" || detail?.type === "饭店" ? { name: selectedNode.name, ...detail } : null;
+    },
     [selectedNode],
   );
 
@@ -109,6 +168,46 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     () => itineraryMapNodes.filter((node) => node.day === selectedDay),
     [selectedDay],
   );
+
+  const finalRouteDays = useMemo(
+    () =>
+      planningDays.map((day, index) => {
+        const nodes = itineraryMapNodes.filter((node) => node.day === day.id);
+        const route = nodes.map((node) => node.name).join(" - ");
+        return {
+          ...day,
+          color: ["#7067f5", "#2e8f7f", "#bf6a00", "#d9a24c"][index % 4],
+          route,
+          nodes,
+          path: detailedRoutePathByDay[day.id],
+        };
+      }),
+    [],
+  );
+  const simpleFinalPlan = useMemo(() => {
+    const chosenItems = simpleMapRegions.flatMap((region) =>
+      region.places
+        .filter((place) => chosenSimplePlaces.includes(place.name))
+        .map((place) => ({ ...place, region })),
+    );
+
+    const staying = chosenItems
+      .filter((item) => item.region.tone.includes("住宿"))
+      .map((item) => item.name);
+    const eating = chosenItems
+      .filter((item) => item.region.tone.includes("吃饭") || item.region.tone.includes("补给"))
+      .map((item) => item.name);
+    const visiting = chosenItems
+      .filter((item) => !item.region.tone.includes("住宿") && !item.region.tone.includes("吃饭") && !item.region.tone.includes("补给"))
+      .map((item) => item.name);
+
+    return {
+      stay: staying.length ? staying.join("、") : "岛内主路附近",
+      visit: visiting.length ? visiting.join("、") : selectedDestination.highlights.join("、"),
+      eat: eating.length ? eating.join("、") : "老城小吃和海边简餐",
+      chosenCount: chosenItems.length,
+    };
+  }, [chosenSimplePlaces, selectedDestination.highlights]);
 
   const dayRegions = useMemo(
     () => simpleMapRegions.filter((region) => region.day === selectedDay),
@@ -181,7 +280,45 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     }, 1200);
   };
 
-  const openOptionDetail = (item) => {
+  const handleRemoveArea = () => {
+    setIsRebuildingPlan(true);
+    window.setTimeout(() => {
+      setMapRefreshKey((key) => key + 1);
+      setIsRebuildingPlan(false);
+      showToast("已避开这一块，重新整理攻略方向");
+    }, 1200);
+  };
+
+  const findAttractionDetail = (item) => {
+    return allAttractions.find((spot) => spot.name === item.name);
+  };
+
+  const enrichSpotCard = (item, fallbackTag = "景点") => {
+    const attraction = findAttractionDetail(item);
+    return {
+      ...item,
+      tag: attraction?.tag ?? item.tag ?? fallbackTag,
+      intro: attraction?.intro ?? item.meta ?? "适合放进当天路线，实际停留时间可以按体力调整。",
+      stay: attraction?.stay ?? "60-90 分钟",
+      bestTime: attraction?.bestTime ?? selectedNode.time?.replace(/^\d{2}:\d{2}\s*/, "") ?? "当天顺路时段",
+      detail: attraction?.detail ?? item.meta,
+    };
+  };
+
+  const openOptionDetail = (item, returnFlow = flow) => {
+    const attraction = findAttractionDetail(item);
+    if (attraction) {
+      setSelectedCity(attraction.city);
+      setSelectedAttraction({
+        ...attraction,
+        tag: attraction.tag ?? item.tag,
+        intro: attraction.intro ?? item.meta,
+      });
+      setSpotDetailReturnFlow(returnFlow);
+      setFlow("spotDetail");
+      return;
+    }
+
     const detail = mapOptionDetails[item.name] ?? {
       type: selectedNodeType === "hotel" ? "酒店" : selectedNodeType === "food" ? "饭店" : "景点",
       rating: "4.5",
@@ -202,10 +339,25 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     setSelectedNode((node) => ({
       ...node,
       name: item.name,
-      meta: item.meta,
+      meta: detail.nodeMeta ?? item.meta,
+      address: detail.address ?? node.address,
+      duration: detail.duration ?? node.duration,
       cost: detail.price ? `预算：${detail.price}` : node.cost,
-      tip: detail.detail ?? node.tip,
+      safety: detail.safety ?? node.safety,
+      tip: detail.tip ?? detail.detail ?? node.tip,
     }));
+    if (detail.type) {
+      setSelectedBooking({
+        name: item.name,
+        ...detail,
+      });
+    }
+  };
+
+  const chooseOptionAndReturnToMap = (item) => {
+    chooseDetailedOption(item);
+    setFlow("map");
+    showToast(`已换成${item.name}`);
   };
 
   const toggleDetailedSpot = (item) => {
@@ -247,7 +399,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
   const goBack = () => {
     const backMap = {
       spots: "chat",
-      spotDetail: "spots",
+      spotDetail: spotDetailReturnFlow,
       strategy: "chat",
       map: "strategy",
       booking: "map",
@@ -371,11 +523,13 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                 type="button"
                 onClick={() => {
                   setSelectedAttraction(spot);
+                  setSpotDetailReturnFlow("spots");
                   setFlow("spotDetail");
                 }}
               >
                 <span>{spot.tag}</span>
                 <strong>{spot.name}</strong>
+                <small>{spot.intro}</small>
                 <ChevronRight size={16} />
               </button>
             ))}
@@ -393,10 +547,38 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
       <div className="page-stack pretrip-page">
         <PageHeader />
         <section className="spot-card flow-page-card">
-          <div className="spot-detail large-spot-detail">
-            <span className="pill">{selectedAttraction.tag}</span>
-            <strong>{selectedAttraction.name}</strong>
-            <p>{selectedAttraction.intro}</p>
+          <div
+            className="spot-detail-hero"
+            style={{ backgroundImage: `url("${getSpotImageUrl(selectedAttraction.name, selectedDestination.city)}")` }}
+            aria-label={`${selectedAttraction.name} 图片`}
+          >
+            <span className="pill dark">{selectedAttraction.tag}</span>
+            <div>
+              <strong>{selectedAttraction.name}</strong>
+              <p>{selectedAttraction.intro}</p>
+            </div>
+          </div>
+          <div className="spot-detail-grid">
+            <div>
+              <span>建议停留</span>
+              <strong>{selectedAttraction.stay ?? "60-120 分钟"}</strong>
+            </div>
+            <div>
+              <span>适合时段</span>
+              <strong>{selectedAttraction.bestTime ?? "上午或傍晚"}</strong>
+            </div>
+            <div>
+              <span>独行友好</span>
+              <strong>{selectedAttraction.solo ?? "路线清楚，补给方便"}</strong>
+            </div>
+            <div>
+              <span>替换方向</span>
+              <strong>{selectedAttraction.backup ?? "天气不好可换室内/商圈"}</strong>
+            </div>
+          </div>
+          <div className="spot-detail-note">
+            <Info size={16} />
+            <p>{selectedAttraction.detail ?? "这个点适合放进半日路线，不建议把前后节点排得太紧，留一点现场调整空间会更舒服。"}</p>
           </div>
           <button className="primary-button full flow-bottom-action" type="button" onClick={() => openStrategy(selectedDestination.city)}>
             喜欢这个方向，进入细节攻略制定
@@ -450,6 +632,30 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
 
   if (flow === "map") {
     const isSimpleMode = planMode === "simple";
+    const spotAreaTitle =
+      selectedDay === "D1" ? "老城和港口一带" : selectedDay === "D2" ? "海边和环岛路一带" : "鼓浪屿和轮渡一带";
+    const spotAreaSummary =
+      selectedDay === "D1"
+        ? "这片区域适合街区慢走、咖啡休息和老城小吃，具体去哪些点可以在下面逐个加入。"
+        : selectedDay === "D2"
+          ? "这片区域适合看海、骑行和轻量散步，按当天体力选择几个点就好。"
+          : "这片区域适合建筑散步和海边慢走，返程日不要把点排得太满。";
+    const spotAreaOptions =
+      selectedNodeType === "spot"
+        ? [
+            {
+              name: selectedNode.name,
+              tag: "当前推荐",
+              meta: selectedNode.meta,
+            },
+            ...selectedNode.alternatives,
+          ].map((item) => enrichSpotCard(item, "路线景点"))
+        : [];
+    const visibleRouteSpots = spotAreaOptions.filter((item) => chosenDetailedSpots.includes(item.name));
+    const availableRouteSpots =
+      selectedNodeType === "spot"
+        ? spotAreaOptions.filter((item) => !chosenDetailedSpots.includes(item.name))
+        : selectedNode.alternatives;
 
     return (
       <div className="page-stack pretrip-page">
@@ -500,7 +706,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                       <strong>{place.name}</strong>
                       <small>{place.meta}</small>
                       <div className="option-card-actions">
-                        <button type="button" onClick={() => openOptionDetail(place)}>
+                        <button type="button" onClick={() => openOptionDetail(place, "map")}>
                           详情
                         </button>
                         <button
@@ -528,7 +734,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                 </svg>
                 {daySegments.map((segment) => (
                   <button
-                    className={`map-route-hit map-route-hit-${segment.id}${selectedSegment.id === segment.id ? " active" : ""}`}
+                    className={`map-route-hit map-route-hit-${segment.id}`}
                     key={segment.id}
                     type="button"
                     onClick={() => setSelectedSegment(segment)}
@@ -556,62 +762,101 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                 <div className="map-node-card-main">
                   <div>
                     <span>{selectedNode.day} · {selectedNode.time}</span>
-                    <strong>{selectedNode.name}</strong>
-                    <p>{selectedNode.meta}</p>
+                    <strong>{selectedNodeType === "spot" ? spotAreaTitle : selectedNode.name}</strong>
+                    <p>{selectedNodeType === "spot" ? spotAreaSummary : selectedNode.meta}</p>
                   </div>
                   <span className="map-node-type">
                     {selectedNode.type === "hotel" ? "住宿" : selectedNode.type === "food" ? "餐饮" : "景点"}
                   </span>
                 </div>
-                <div className="node-info-grid">
-                  <div>
-                    <span>位置</span>
-                    <strong>{selectedNode.address}</strong>
+                {selectedNodeType !== "spot" && (
+                  <>
+                    <div className="node-info-grid">
+                      <div>
+                        <span>位置</span>
+                        <strong>{selectedNode.address}</strong>
+                      </div>
+                      <div>
+                        <span>时间</span>
+                        <strong>{selectedNode.duration}</strong>
+                      </div>
+                      <div>
+                        <span>预算</span>
+                        <strong>{selectedNode.cost}</strong>
+                      </div>
+                      <div>
+                        <span>安全</span>
+                        <strong>{selectedNode.safety}</strong>
+                      </div>
+                    </div>
+                    <div className="node-tip-row">
+                      <Info size={15} />
+                      <p>{selectedNode.tip}</p>
+                    </div>
+                    {selectedNodeBooking && (
+                      <button
+                        className="secondary-button node-current-detail-button"
+                        type="button"
+                        onClick={() => {
+                          setSelectedBooking(selectedNodeBooking);
+                          setFlow("bookingDetail");
+                        }}
+                      >
+                        查看当前选择详情
+                      </button>
+                    )}
+                  </>
+                )}
+                {selectedNodeType === "spot" && (
+                  <div className="selected-spot-strip">
+                    <span>这一带已加入路线的地点</span>
+                    <div>
+                      {visibleRouteSpots.map((item) => {
+                        const isChosen = chosenDetailedSpots.includes(item.name);
+                        return (
+                          <article key={item.name} className={`route-spot-card${isChosen ? " selected" : ""}`}>
+                            <div>
+                              <span>{item.tag}</span>
+                              <strong>{item.name}</strong>
+                              <p>{item.intro}</p>
+                              <small>建议停留：{item.stay} · {item.bestTime}</small>
+                            </div>
+                            <div className="route-spot-actions">
+                              <button type="button" onClick={() => openOptionDetail(item, "map")}>
+                                详情
+                              </button>
+                              <button className={isChosen ? "active" : ""} type="button" onClick={() => toggleDetailedSpot(item)}>
+                                {isChosen ? "从路线移除" : "加入路线"}
+                              </button>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div>
-                    <span>时间</span>
-                    <strong>{selectedNode.duration}</strong>
-                  </div>
-                  <div>
-                    <span>预算</span>
-                    <strong>{selectedNode.cost}</strong>
-                  </div>
-                  <div>
-                    <span>安全</span>
-                    <strong>{selectedNode.safety}</strong>
-                  </div>
-                </div>
-                <div className="node-tip-row">
-                  <Info size={15} />
-                  <p>{selectedNode.tip}</p>
-                </div>
+                )}
                 <div className="alternative-strip">
                   <span>{selectedNode.alternativesTitle}</span>
                   <div>
-                    {selectedNode.alternatives.map((item) => (
-                      <article key={item.name}>
-                        <strong>{item.name}</strong>
-                        <small>{item.tag} · {item.meta}</small>
-                        <div className="option-card-actions">
-                        <button type="button" onClick={() => openOptionDetail(item)}>
-                          详情
-                        </button>
-                          {renderDetailedOptionAction(item)}
-                        </div>
-                      </article>
-                    ))}
+                    {availableRouteSpots.map((item) => {
+                      const enrichedItem = selectedNodeType === "spot" ? enrichSpotCard(item, "路线景点") : item;
+                      return (
+                        <article key={item.name}>
+                          <strong>{enrichedItem.name}</strong>
+                          <small>{enrichedItem.tag} · {enrichedItem.meta}</small>
+                          <div className="option-card-actions">
+                            <button type="button" onClick={() => openOptionDetail(enrichedItem, "map")}>
+                              详情
+                            </button>
+                            {renderDetailedOptionAction(enrichedItem)}
+                          </div>
+                        </article>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="node-card-actions">
-                  {selectedNodeType === "spot" && (
-                    <button
-                      type="button"
-                      onClick={() => toggleDetailedSpot({ name: selectedNode.name })}
-                    >
-                      <X size={14} /> {chosenDetailedSpots.includes(selectedNode.name) ? "从路线移除" : "加入路线"}
-                    </button>
-                  )}
-                  <button className="area-remove-button" type="button" onClick={() => showToast("这一块已从攻略方向里排除")}>
+                  <button className="area-remove-button" type="button" onClick={handleRemoveArea}>
                     <X size={14} /> 这一块都不想去
                   </button>
                   <button
@@ -623,18 +868,6 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                   >
                     查看全部
                   </button>
-                  {selectedNodeBooking && (
-                    <button
-                      className="primary-button compact"
-                      type="button"
-                      onClick={() => {
-                        setSelectedBooking(selectedNodeBooking);
-                        setFlow("bookingDetail");
-                      }}
-                    >
-                      查看详情
-                    </button>
-                  )}
                 </div>
               </div>
               <button className="route-summary-card" type="button" onClick={() => setFlow("transportDetail")}>
@@ -648,7 +881,6 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
               <div className="traffic-list">
                 {daySegments.map((segment) => (
                   <button
-                    className={selectedSegment.id === segment.id ? "active" : ""}
                     key={segment.id}
                     type="button"
                     onClick={() => setSelectedSegment(segment)}
@@ -819,10 +1051,16 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                   <p>{item.meta}</p>
                 </div>
                 <div className="option-card-actions">
-                  <button type="button" onClick={() => openOptionDetail(item)}>
+                  <button type="button" onClick={() => openOptionDetail(item, "optionList")}>
                     详情
                   </button>
-                  {renderDetailedOptionAction(item)}
+                  {selectedOptionListType === "hotel" || selectedOptionListType === "food" ? (
+                    <button type="button" onClick={() => chooseOptionAndReturnToMap(item)}>
+                      换成这个
+                    </button>
+                  ) : (
+                    renderDetailedOptionAction(item)
+                  )}
                 </div>
               </article>
             ))}
@@ -848,11 +1086,17 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
             className="primary-button full flow-bottom-action"
             type="button"
             onClick={() => {
+              if (reservedItem === selectedBooking.name) {
+                setReservedItem("");
+                showToast("已取消预订");
+                return;
+              }
+
               setReservedItem(selectedBooking.name);
               showToast("预定成功，已同步到攻略");
             }}
           >
-            一键预定
+            {reservedItem === selectedBooking.name ? "取消预订" : "一键预定"}
           </button>
           {reservedItem === selectedBooking.name && (
             <div className="reserved-state">
@@ -872,29 +1116,65 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
         <div className="section-title">
           <div>
             <span className="eyebrow">{selectedDestination.city} · 整体行程</span>
-            <h3>不同颜色代表不同天</h3>
+            <h3>{planMode === "simple" ? "简约攻略确认" : "每天一条路线，节点按类型标注"}</h3>
           </div>
         </div>
-        <div className="planner-map final-map" aria-label="最终行程地图">
-          <svg viewBox="0 0 300 150" role="presentation">
-            <path className="route-day-one" d="M28 112 C70 54, 112 116, 154 62 S238 42, 268 72" />
-            <path className="route-day-two" d="M42 36 C94 24, 112 82, 170 98 S238 122, 282 40" />
-          </svg>
-          <span className="planner-node active" style={{ left: "16%", top: "58%" }}>1</span>
-          <span className="planner-node" style={{ left: "48%", top: "32%" }}>2</span>
-          <span className="planner-node" style={{ left: "76%", top: "62%" }}>3</span>
-        </div>
-        <div className="final-route-map">
-          {finalItineraryDays.map((day) => (
-            <div className="final-day" key={day.day}>
-              <span style={{ background: day.color }} />
-              <div>
-                <strong>{day.day}</strong>
-                <p>{day.route}</p>
-              </div>
+        {planMode === "simple" ? (
+          <div className="simple-final-summary">
+            <p>这版攻略保留大方向，具体顺序可以旅途中再由小旅按天气、体力和营业状态微调。</p>
+            <div>
+              <article>
+                <span>住宿方向</span>
+                <strong>旅途中我们会住在：{simpleFinalPlan.stay}</strong>
+              </article>
+              <article>
+                <span>想去的地方</span>
+                <strong>会去你想去的：{simpleFinalPlan.visit}</strong>
+              </article>
+              <article>
+                <span>吃饭方向</span>
+                <strong>会安排吃：{simpleFinalPlan.eat}</strong>
+              </article>
             </div>
-          ))}
-        </div>
+            <small>已纳入 {simpleFinalPlan.chosenCount} 个你在简约攻略里选择的偏好。</small>
+          </div>
+        ) : (
+          <>
+            <div className="planner-map final-map" aria-label="最终行程地图">
+              <svg viewBox="0 0 320 230" role="presentation">
+                {finalRouteDays.map((day) => (
+                  <path key={day.id} stroke={day.color} d={day.path} />
+                ))}
+              </svg>
+              {finalRouteDays.flatMap((day) =>
+                day.nodes.map((node, index) => (
+                  <span
+                    className={`final-map-node final-map-node-${node.type}`}
+                    key={`${day.id}-${node.name}`}
+                    style={{ left: `${node.x}%`, top: `${node.y}%` }}
+                    aria-label={`${day.label} ${node.name}`}
+                  />
+                )),
+              )}
+            </div>
+            <div className="final-map-legend" aria-label="地图图例">
+              <span><i className="final-map-node-hotel" />酒店</span>
+              <span><i className="final-map-node-food" />饭店</span>
+              <span><i className="final-map-node-spot" />景点/打卡点</span>
+            </div>
+            <div className="final-route-map">
+              {finalRouteDays.map((day) => (
+                <div className="final-day" key={day.id}>
+                  <span style={{ background: day.color }} />
+                  <div>
+                    <strong>{day.label}</strong>
+                    <p>{day.route}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
         <button className="primary-button full" type="button" onClick={() => onConfirmTrip?.(selectedDestination)}>
           保存最终攻略并加入陪伴列表
         </button>
