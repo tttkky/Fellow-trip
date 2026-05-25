@@ -8,10 +8,11 @@ import {
   Play,
   Route,
   ShieldCheck,
+  Trash2,
   X,
 } from "lucide-react";
 
-export default function PlanPage({ confirmedTrips = [], setActivePage, showToast, updateTripStatus }) {
+export default function PlanPage({ confirmedTrips = [], setActivePage, showToast, updateTripStatus, deleteTrip }) {
   const [activeTripId, setActiveTripId] = useState("");
   const [selectedSpot, setSelectedSpot] = useState(null);
 
@@ -70,9 +71,14 @@ export default function PlanPage({ confirmedTrips = [], setActivePage, showToast
                     <span key={node}>{node}</span>
                   ))}
                 </div>
-                <button className="primary-button full" type="button" onClick={() => enterTrip(trip)}>
-                  <Play size={16} /> 进入行程
-                </button>
+                <div className="trip-card-actions">
+                  <button className="primary-button full" type="button" onClick={() => enterTrip(trip)}>
+                    <Play size={16} /> 进入行程
+                  </button>
+                  <button className="trip-delete-button" type="button" onClick={() => deleteTrip?.(trip.id)}>
+                    <Trash2 size={15} /> 删除行程
+                  </button>
+                </div>
               </article>
             ))
           )}

@@ -82,12 +82,16 @@ export default function App() {
     setActivePage(previousPage);
   };
 
-  const handleAuthSuccess = () => {
+  const handleAuthSuccess = (authMode = "login") => {
+    const isRegistering = authMode === "register";
+    const nextBuddyReady = isRegistering ? false : true;
+
     setIsAuthenticated(true);
-    saveStoredState({ isAuthenticated: true });
+    setBuddyReady(nextBuddyReady);
+    saveStoredState({ isAuthenticated: true, buddyReady: nextBuddyReady });
     setPageHistory([]);
-    setActivePage(buddyReady ? "home" : "buddySetup");
-    showToast(buddyReady ? "欢迎回来，已读取本机记忆" : "登录成功，先创建你的旅行搭子");
+    setActivePage(isRegistering ? "buddySetup" : "home");
+    showToast(isRegistering ? "注册成功，先创建你的旅行搭子" : "欢迎回来，已进入旅行规划");
   };
 
   const handleBuddyComplete = (nextBuddySettings) => {
@@ -143,6 +147,15 @@ export default function App() {
       saveStoredState({ confirmedTrips: nextTrips });
       return nextTrips;
     });
+  };
+
+  const deleteTrip = (tripId) => {
+    setConfirmedTrips((trips) => {
+      const nextTrips = trips.filter((trip) => trip.id !== tripId);
+      saveStoredState({ confirmedTrips: nextTrips });
+      return nextTrips;
+    });
+    showToast("行程已删除");
   };
 
   const handleLogout = () => {
@@ -229,6 +242,7 @@ export default function App() {
               setActivePage={navigateToPage}
               showToast={showToast}
               updateTripStatus={updateTripStatus}
+              deleteTrip={deleteTrip}
             />
           )}
           {effectivePage === "safety" && <SafetyPage showToast={showToast} />}
