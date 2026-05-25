@@ -9,6 +9,7 @@
 - 本地地址：http://localhost:5173
 - 当前 Git 最新提交：`3b2acbb Add auth onboarding and profile page`
 - 当前阶段：移动端 SPA 高保真交互原型，不接真实后端、地图、AI、定位、语音接口。
+- 用户记忆：使用浏览器 `localStorage` 模拟，保存登录状态、搭子设置和已加入陪伴的行程。
 
 ## 关键流程
 
@@ -21,6 +22,8 @@
 5. 后续搭子设置入口在“我的”页面中
 
 状态流转主要在 `src/App.jsx` 中控制。
+
+本地记忆也在 `src/App.jsx` 中控制，key 为 `fellowTripPrototypeState`。如果调试时想重走首次登录/首次搭子设置流程，可以在浏览器 DevTools 里清除该 localStorage key，或主动退出登录。
 
 ## 目录说明
 
