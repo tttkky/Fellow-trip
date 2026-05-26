@@ -1,5 +1,5 @@
 import { Bot, ChevronRight, History, LogOut, Shield, UserRound } from "lucide-react";
-import { tripHistory, userProfile } from "../data/mockData.js";
+import { memoryArchives, tripHistory, userProfile } from "../data/mockData.js";
 
 const appearanceLabels = {
   "round-bot": "圆滚机器人",
@@ -13,6 +13,7 @@ export default function ProfilePage({ buddySettings, onEditBuddy, onLogout, show
   const appearance = appearanceLabels[buddySettings?.appearance] ?? buddySettings?.appearance ?? "圆滚机器人";
   const voice = buddySettings?.voice ?? "温柔";
   const frequency = buddySettings?.frequency ?? "中";
+  const completedSoloTripCount = memoryArchives.length;
 
   return (
     <div className="page-stack">
@@ -24,7 +25,7 @@ export default function ProfilePage({ buddySettings, onEditBuddy, onLogout, show
           <span className="eyebrow">独旅档案</span>
           <h2>{userProfile.name}</h2>
           <p>
-            {userProfile.city} · 已完成 {userProfile.travelCount} 次独自旅行
+            {userProfile.city} · 已完成 {completedSoloTripCount} 次独自旅行
           </p>
         </div>
       </section>
