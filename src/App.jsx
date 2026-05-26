@@ -199,10 +199,12 @@ export default function App() {
             </div>
           </div>
           <div className="app-header-actions">
-            <button className="history-record-button" type="button" onClick={() => navigateToPage("memory")}>
-              <History size={16} />
-              <span>历史记录</span>
-            </button>
+            {effectivePage !== "memory" && (
+              <button className="history-record-button" type="button" onClick={() => navigateToPage("memory")}>
+                <History size={16} />
+                <span>历史记录</span>
+              </button>
+            )}
             <button className="icon-button" aria-label="通知" onClick={() => showToast("暂无新的安全提醒")}>
               <Bell size={18} />
             </button>
