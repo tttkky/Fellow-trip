@@ -946,6 +946,11 @@ p {
   box-shadow: 0 0 0 4px rgba(182, 197, 150, 0.2);
 }
 
+.safety-live-status i.paused {
+  background: #bbb1a0;
+  box-shadow: 0 0 0 4px rgba(187, 177, 160, 0.18);
+}
+
 .safety-call-header h2 {
   margin-top: 4px;
   font-size: 20px;
@@ -1043,6 +1048,36 @@ p {
   display: grid;
   gap: 12px;
   background: #fffdfa;
+}
+
+.safety-preference-summary {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(241, 223, 191, 0.92);
+  border-radius: 18px;
+  background: #fffdfa;
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+}
+
+.safety-preference-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.safety-preference-tags span {
+  border-radius: 999px;
+  background: #f3f1eb;
+  color: var(--muted);
+  padding: 6px 9px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.safety-preference-tags span.active {
+  color: var(--primary-deep);
+  background: #fff3d6;
 }
 
 .safety-navigation-header {
@@ -1378,6 +1413,14 @@ p {
   width: 66px;
   height: 66px;
   border-radius: 24px;
+  overflow: hidden;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .profile-hero h2 {
@@ -1449,10 +1492,85 @@ p {
 
 .history-row {
   align-items: flex-start;
+  width: 100%;
+  text-align: left;
 }
 
 .history-row p {
   margin-top: 5px;
+}
+
+.history-row > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.history-row.interactive:hover strong {
+  color: var(--primary);
+}
+
+.safety-preferences-card {
+  display: grid;
+  gap: 0;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.safety-preference-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  border-top: 1px solid var(--line);
+  padding: 11px 0;
+  text-align: left;
+}
+
+.safety-preference-row:first-child {
+  border-top: 0;
+}
+
+.safety-preference-row strong,
+.safety-preference-row small {
+  display: block;
+}
+
+.safety-preference-row small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.safety-preference-row i {
+  position: relative;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: #d8dce5;
+  transition: background 0.2s ease;
+}
+
+.safety-preference-row i.active {
+  background: var(--mint);
+}
+
+.safety-preference-row b {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+
+.safety-preference-row i.active b {
+  transform: translateX(16px);
 }
 
 .full-width {

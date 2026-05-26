@@ -11,13 +11,14 @@ import {
 } from "lucide-react";
 import { safetyCompanionCall, safetyMedia } from "../data/mockData.js";
 
-export default function SafetyPage({ showToast }) {
+export default function SafetyPage({ showToast, safetyPreferences }) {
   const [shareOpen, setShareOpen] = useState(false);
   const [muted, setMuted] = useState(false);
   const [speakerOn, setSpeakerOn] = useState(true);
   const [sosHolding, setSosHolding] = useState(false);
   const [sosSent, setSosSent] = useState(false);
   const sosTimerRef = useRef(null);
+  const isSafetyModeOn = safetyPreferences.safetyMode;
 
   const stopSosHold = () => {
     window.clearTimeout(sosTimerRef.current);
@@ -46,7 +47,7 @@ export default function SafetyPage({ showToast }) {
           </div>
           <div>
             <span className="safety-live-status">
-              <i /> {safetyCompanionCall.status}
+              <i className={isSafetyModeOn ? "" : "paused"} /> {isSafetyModeOn ? safetyCompanionCall.status : "安全守护已暂停"}
             </span>
             <h2>{safetyCompanionCall.assistant}</h2>
           </div>
@@ -102,16 +103,33 @@ export default function SafetyPage({ showToast }) {
         </div>
       </section>
 
+      <section className="safety-preference-summary" aria-label="当前安全偏好">
+        <div className="safety-navigation-header">
+          <h3>当前守护偏好</h3>
+          <span>{isSafetyModeOn ? "守护中" : "已暂停"}</span>
+        </div>
+        <div className="safety-preference-tags">
+          <span className={safetyPreferences.nightTravelReminder ? "active" : ""}>夜间提醒</span>
+          <span className={safetyPreferences.remoteRouteHint ? "active" : ""}>偏僻路线提示</span>
+          <span className={safetyPreferences.locationShareReminder ? "active" : ""}>位置共享提醒</span>
+          <span className={safetyPreferences.emergencyContactReminder ? "active" : ""}>联系人提示</span>
+        </div>
+      </section>
+
       <section className="safety-navigation-card" aria-label="导航窗口">
         <div className="safety-navigation-header">
           <h3>导航窗口</h3>
-          <span>{safetyCompanionCall.navigationStatus}</span>
+          <span>{safetyPreferences.remoteRouteHint ? safetyCompanionCall.navigationStatus : "路线轻提示已关闭"}</span>
         </div>
         <div className="safety-navigation-preview">
           <img src={safetyMedia.navigationImage} alt="实时导航画面" />
           <div className="safety-navigation-companion-tip">
             <strong>小旅：</strong>
-            <span>{safetyCompanionCall.walkingCue}</span>
+            <span>
+              {safetyPreferences.nightTravelReminder
+                ? safetyCompanionCall.walkingCue
+                : "夜间提醒已关闭，仍可随时手动开启守护。"}
+            </span>
           </div>
         </div>
       </section>
@@ -120,13 +138,17 @@ export default function SafetyPage({ showToast }) {
         <button className="safety-share-status" type="button" onClick={() => setShareOpen(true)}>
           <span>
             <MapPinned size={16} />
-            位置共享：未开启
+            位置共享提醒：{safetyPreferences.locationShareReminder ? "已开启" : "已关闭"}
           </span>
           <small>邀请微信好友</small>
         </button>
         <div className="safety-emergency-copy">
           <strong>报警求助</strong>
-          <p>紧急情况下将拨打 110，并发送当前位置和当前时间。</p>
+          <p>
+            {safetyPreferences.emergencyContactReminder
+              ? "紧急情况下将拨打 110，并提示向紧急联系人发送当前位置和当前时间。"
+              : "紧急情况下将拨打 110，并发送当前位置和当前时间。"}
+          </p>
         </div>
         <button
           className={`sos-hold-button${sosHolding ? " holding" : ""}${sosSent ? " sent" : ""}`}

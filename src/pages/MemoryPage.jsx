@@ -32,8 +32,10 @@ const memoryArchiveCovers = {
   "guangzhou-2026-05": mem1,
 };
 
-export default function MemoryPage({ showToast }) {
-  const [openedArchive, setOpenedArchive] = useState(null);
+export default function MemoryPage({ showToast, initialArchiveId = null }) {
+  const [openedArchive, setOpenedArchive] = useState(
+    () => memoryArchives.find((archive) => archive.id === initialArchiveId) ?? null,
+  );
   const [platform, setPlatform] = useState("pyq");
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [currentDay, setCurrentDay] = useState(1);

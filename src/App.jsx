@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Bell, History } from "lucide-react";
 import BottomNav from "./components/BottomNav.jsx";
 import FloatingBuddy from "./components/FloatingBuddy.jsx";
@@ -20,6 +20,14 @@ const pageTitles = {
 
 const storageKey = "fellowTripPrototypeState";
 
+const defaultSafetyPreferences = {
+  safetyMode: true,
+  nightTravelReminder: true,
+  remoteRouteHint: true,
+  locationShareReminder: true,
+  emergencyContactReminder: true,
+};
+
 const loadStoredState = () => {
   try {
     const raw = window.localStorage.getItem(storageKey);
@@ -40,14 +48,29 @@ const saveStoredState = (partialState) => {
 
 export default function App() {
   const storedState = useMemo(loadStoredState, []);
+  const storedBuddySettings = storedState.selectedBuddy ?? storedState.buddySettings ?? buddyProfile;
+  const storedOnboardingCompleted = storedState.onboardingCompleted ?? storedState.buddyReady;
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(storedState.isAuthenticated));
   const [activePage, setActivePage] = useState("home");
-  const [mode, setMode] = useState(storedState.buddySettings?.companionMode ?? "realtime");
-  const [buddyReady, setBuddyReady] = useState(Boolean(storedState.buddyReady));
-  const [buddySettings, setBuddySettings] = useState(storedState.buddySettings ?? buddyProfile);
+  const [mode, setMode] = useState(storedBuddySettings.companionMode ?? "realtime");
+  const [buddyReady, setBuddyReady] = useState(Boolean(storedOnboardingCompleted));
+  const [buddySettings, setBuddySettings] = useState(storedBuddySettings);
+  const [safetyPreferences, setSafetyPreferences] = useState({
+    ...defaultSafetyPreferences,
+    ...storedState.safetyPreferences,
+  });
   const [confirmedTrips, setConfirmedTrips] = useState(storedState.confirmedTrips ?? confirmedCompanionTrips);
+  const [selectedMemoryArchiveId, setSelectedMemoryArchiveId] = useState(null);
   const [pageHistory, setPageHistory] = useState([]);
   const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    saveStoredState({
+      selectedBuddy: buddySettings,
+      onboardingCompleted: buddyReady,
+      safetyPreferences,
+    });
+  }, [buddyReady, buddySettings, safetyPreferences]);
 
   const effectivePage = isAuthenticated && !buddyReady ? "buddySetup" : activePage;
 
@@ -64,6 +87,10 @@ export default function App() {
 
   const navigateToPage = (nextPage, options = {}) => {
     if (nextPage === activePage) return;
+
+    if (nextPage === "memory") {
+      setSelectedMemoryArchiveId(options.archiveId ?? null);
+    }
 
     if (options.reset) {
       setPageHistory([]);
@@ -88,7 +115,11 @@ export default function App() {
 
     setIsAuthenticated(true);
     setBuddyReady(nextBuddyReady);
-    saveStoredState({ isAuthenticated: true, buddyReady: nextBuddyReady });
+    saveStoredState({
+      isAuthenticated: true,
+      buddyReady: nextBuddyReady,
+      onboardingCompleted: nextBuddyReady,
+    });
     setPageHistory([]);
     setActivePage(isRegistering ? "buddySetup" : "home");
     showToast(isRegistering ? "注册成功，先创建你的旅行搭子" : "欢迎回来，已进入旅行规划");
@@ -104,7 +135,9 @@ export default function App() {
     saveStoredState({
       isAuthenticated: true,
       buddyReady: true,
+      onboardingCompleted: true,
       buddySettings: mergedSettings,
+      selectedBuddy: mergedSettings,
       confirmedTrips,
     });
     setPageHistory([]);
@@ -164,6 +197,12 @@ export default function App() {
     setActivePage("home");
     saveStoredState({ isAuthenticated: false });
     showToast("已退出登录，本机搭子记忆仍保留");
+  };
+
+  const handleSafetyPreferencesChange = (nextPreferences) => {
+    setSafetyPreferences(nextPreferences);
+    saveStoredState({ safetyPreferences: nextPreferences });
+    showToast("安全偏好已保存");
   };
 
   if (!isAuthenticated) {
@@ -247,14 +286,22 @@ export default function App() {
               deleteTrip={deleteTrip}
             />
           )}
-          {effectivePage === "safety" && <SafetyPage showToast={showToast} />}
-          {effectivePage === "memory" && <MemoryPage showToast={showToast} />}
+          {effectivePage === "safety" && <SafetyPage showToast={showToast} safetyPreferences={safetyPreferences} />}
+          {effectivePage === "memory" && (
+            <MemoryPage showToast={showToast} initialArchiveId={selectedMemoryArchiveId} />
+          )}
           {effectivePage === "profile" && (
             <ProfilePage
               buddySettings={buddySettings}
+              safetyPreferences={safetyPreferences}
               onEditBuddy={() => navigateToPage("buddySettings")}
+              onEditSafety={handleSafetyPreferencesChange}
+              onOpenTrip={(archive) =>
+                navigateToPage("memory", {
+                  archiveId: archive.id,
+                })
+              }
               onLogout={handleLogout}
-              showToast={showToast}
             />
           )}
         </section>
