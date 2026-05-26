@@ -130,6 +130,34 @@ export default function App() {
           distance: index === 0 ? "1.2km" : "2.4km",
         })) ?? [],
       route: ["酒店", ...(destination.highlights ?? []), "返程"],
+      // 新增陪伴相关字段
+      liveTips: [
+        "今天气温偏高，小旅建议你先补充水分～",
+        "前方300米有适合休息的咖啡店",
+        "现在光线很好，很适合拍照"
+      ],
+      photoGuide: {
+        title: "景点拍照建议",
+        tips: [
+          "靠近建筑边缘拍更有层次",
+          "下午4点后的光线最柔和",
+          "建议使用广角模式"
+        ]
+      },
+      spotGuide: {
+        title: "景点讲解",
+        content: `${destination.city}是一个适合独自旅行的地方，这里有丰富的文化历史和自然景观。`
+      },
+      nearbyFoods: [
+        "一人友好餐厅",
+        "安静咖啡馆",
+        "适合休息的甜品店"
+      ],
+      emotionCare: [
+        "今天已经走了很久，别忘记休息。",
+        "你已经探索了很多地方啦。",
+        "独自旅行也很勇敢。"
+      ]
     };
 
     setConfirmedTrips((trips) => {

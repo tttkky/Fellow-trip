@@ -1,11 +1,37 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Bot, Grip, MessageCircle, X } from "lucide-react";
+
+const TIPS = [
+  "附近有不错的拍照点哦～",
+  "今天已经走了很多路啦",
+  "夕阳快开始了",
+  "前方适合休息一下",
+  "要不要喝点水休息会儿？",
+  "这里风景很美呢",
+  "记得补充能量哦",
+  "慢慢来，享受旅程"
+];
 
 export default function FloatingBuddy({ mode, buddy, onClick }) {
   const [position, setPosition] = useState({ right: 20, bottom: 160 });
   const [isOpen, setIsOpen] = useState(false);
   const [cartoonMode, setCartoonMode] = useState(false);
+  const [currentTip, setCurrentTip] = useState("");
+  const [tipFading, setTipFading] = useState(false);
   const dragRef = useRef(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTipFading(true);
+      setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * TIPS.length);
+        setCurrentTip(TIPS[randomIndex]);
+        setTipFading(false);
+      }, 300);
+    }, 15000); // 每15秒切换一次提示
+
+    return () => clearInterval(interval);
+  }, []);
 
   const appearance = buddy?.appearance ?? "round-bot";
   const buddyName = buddy?.name ?? "小旅";
@@ -72,11 +98,16 @@ export default function FloatingBuddy({ mode, buddy, onClick }) {
   const handleClick = () => {
     if (dragRef.current?.moved) return;
     setIsOpen((value) => !value);
-    onClick?.("我在~有什么想去的地方？");
+    onClick?.(currentTip || "我在~有什么想去的地方？");
   };
 
   return (
-    <div className="floating-buddy-wrap" style={{ right: position.right, bottom: position.bottom }}>
+      <div className="floating-buddy-wrap" style={{ right: position.right, bottom: position.bottom }}>
+        {currentTip && !isOpen && (
+          <div className={`floating-buddy-tip ${tipFading ? 'fading' : 'visible'}`} role="status" aria-live="polite">
+            {currentTip}
+          </div>
+        )}
       {isOpen && (
         <section className="floating-buddy-popover" aria-label="当前搭子形象">
           <button className="floating-buddy-close" type="button" onClick={() => setIsOpen(false)} aria-label="关闭搭子形象">
