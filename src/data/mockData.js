@@ -1689,11 +1689,19 @@ export const confirmedCompanionTrips = [
   },
 ];
 
-export const safetyCards = [
-  { icon: "route", level: "normal", title: "路线明亮度良好", text: "当前路线 82% 位于主干道和商业街" },
-  { icon: "phone", level: "normal", title: "联系人可用", text: "小b将在异常停留时收到位置确认" },
-  { icon: "moon", level: "warning", title: "21:30 后降低探索强度", text: "建议避免进入未标记小巷和河堤暗段" },
-];
+export const safetyCompanionCall = {
+  assistant: "小旅",
+  status: "小旅正在陪你通话中",
+  duration: "06:24",
+  navigationStatus: "导航中 · 预计还需 8 分钟到达",
+  liveCaption: "我在，陪你慢慢走。需要的话，可以把位置共享给朋友。",
+  walkingCue: "哎呀呀，走偏啦，记得走大路哟～",
+};
+
+export const safetyMedia = {
+  navigationImage: "/images/navigation.png",
+  wechatContactsImage: "/images/wechat-contacts.png",
+};
 
 // === 陪伴反馈评价核心数据 ===
 export const evaluationTags = [

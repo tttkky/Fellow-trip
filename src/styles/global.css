@@ -190,7 +190,6 @@ p {
 .route-card,
 .chat-card,
 .timeline-card,
-.alert-card,
 .share-card {
   border: 1px solid rgba(232, 236, 248, 0.9);
   border-radius: 16px;
@@ -201,7 +200,6 @@ p {
 
 .hero-panel,
 .creator-panel,
-.night-panel,
 .memory-hero {
   position: relative;
   overflow: hidden;
@@ -219,7 +217,6 @@ p {
 
 .hero-copy h2,
 .creator-panel h2,
-.night-panel h2,
 .memory-hero h2,
 .input-card h2 {
   margin: 10px 0 8px;
@@ -230,7 +227,6 @@ p {
 
 .hero-copy p,
 .creator-panel p,
-.night-panel p,
 .input-card p,
 .share-card p {
   color: var(--muted);
@@ -704,9 +700,7 @@ p {
 .timeline-item p,
 .plan-row p,
 .info-tile p,
-.safety-row p,
-.memory-row p,
-.alert-card p {
+.memory-row p {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.45;
@@ -725,7 +719,6 @@ p {
 
 .timeline-item,
 .plan-row,
-.safety-row,
 .memory-row {
   display: grid;
   grid-template-columns: 52px 1fr;
@@ -736,7 +729,6 @@ p {
 
 .timeline-item:first-of-type,
 .plan-row:first-of-type,
-.safety-row:first-of-type,
 .memory-row:first-of-type {
   border-top: 0;
 }
@@ -896,71 +888,377 @@ p {
   color: var(--primary);
 }
 
-/* ==========================================================================
-   夜间安全模式与 SOS 紧急联络
-   ========================================================================== */
-.night-panel {
-  display: grid;
-  grid-template-columns: 1fr 86px;
+.safety-page {
   gap: 12px;
-  align-items: center;
-  color: #fff;
-  background:
-    linear-gradient(135deg, rgba(22, 27, 57, 0.96), rgba(62, 58, 132, 0.94)),
-    linear-gradient(135deg, #27345c, #6c61e9);
 }
 
-.sos-button {
-  width: 78px;
-  height: 78px;
-  border-radius: 50%;
-  color: #fff;
-  background: linear-gradient(135deg, #ff7a84, #e63751);
-  box-shadow: 0 14px 28px rgba(230, 55, 81, 0.34);
-  font-size: 21px;
+.safety-call-card,
+.safety-navigation-card,
+.safety-assistance-card,
+.safety-tool-sheet {
+  border: 1px solid rgba(241, 223, 191, 0.92);
+  border-radius: 22px;
+  background: rgba(255, 254, 250, 0.97);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.safety-call-card {
+  display: grid;
+  gap: 15px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(243, 204, 125, 0.25), transparent 34%),
+    linear-gradient(155deg, #fffefa 0%, #fff8e6 100%);
+}
+
+.safety-call-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.safety-buddy-avatar {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  color: var(--primary-deep);
+  background: linear-gradient(145deg, #fff1c8, #f8edcf);
+  box-shadow: inset 0 0 0 1px rgba(217, 162, 76, 0.18);
+}
+
+.safety-live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #728759;
+  font-size: 11px;
   font-weight: 900;
 }
 
-.safety-row {
-  grid-template-columns: 38px 1fr;
+.safety-live-status i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #89a365;
+  box-shadow: 0 0 0 4px rgba(182, 197, 150, 0.2);
+}
+
+.safety-call-header h2 {
+  margin-top: 4px;
+  font-size: 20px;
+}
+
+.safety-call-timing {
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
-}
-
-.safety-icon {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  color: #2e8f7f;
-  background: rgba(123, 220, 200, 0.22);
-}
-
-.safety-icon.warning {
-  color: #bf6a00;
-  background: rgba(255, 190, 123, 0.24);
-}
-
-.contact-card {
-  display: grid;
   gap: 10px;
+  border-radius: 16px;
+  background: #fff3d6;
+  padding: 11px 12px;
 }
 
-.contact-card label {
-  display: grid;
+.safety-call-timing div {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  color: var(--muted);
+  color: var(--primary-deep);
   font-size: 12px;
+  font-weight: 900;
+}
+
+.safety-call-timing small {
+  color: var(--muted);
+  font-size: 11px;
   font-weight: 800;
 }
 
-.contact-card input {
-  height: 42px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 0 12px;
+.safety-call-timing strong {
+  justify-self: end;
   color: var(--text);
-  background: #f9fbff;
+  font-size: 13px;
+}
+
+.safety-live-caption {
+  display: grid;
+  gap: 7px;
+  border-radius: 16px;
+  background: #fff;
+  padding: 11px 12px;
+}
+
+.safety-live-caption > span {
+  width: fit-content;
+  border-radius: 999px;
+  color: var(--primary-deep);
+  background: #fff3d6;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.safety-live-caption p {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.safety-live-caption strong {
+  color: var(--primary);
+}
+
+.safety-call-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.28fr;
+  gap: 8px;
+}
+
+.safety-call-controls button {
+  min-height: 54px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  border-radius: 15px;
+  color: var(--muted);
+  background: #fff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.safety-call-controls button.active {
+  color: var(--primary-deep);
+  background: #fff2d4;
+}
+
+.safety-call-controls .end-call {
+  color: #bd6454;
+  background: #fff0eb;
+}
+
+.safety-navigation-card {
+  display: grid;
+  gap: 12px;
+  background: #fffdfa;
+}
+
+.safety-navigation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.safety-navigation-header h3 {
+  font-size: 16px;
+}
+
+.safety-navigation-header span {
+  border-radius: 999px;
+  color: var(--primary-deep);
+  background: #fff3d6;
+  padding: 6px 9px;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.safety-navigation-preview {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1.76;
+  border-radius: 17px;
+  background: #fff8e6;
+}
+
+.safety-navigation-preview img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.safety-navigation-companion-tip {
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  bottom: 9px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(241, 223, 191, 0.88);
+  border-radius: 11px;
+  background: rgba(255, 247, 221, 0.94);
+  box-shadow: 0 5px 12px rgba(128, 91, 42, 0.08);
+  padding: 7px 9px;
+  color: #715c48;
+  font-size: 11px;
+  line-height: 1.38;
+}
+
+.safety-navigation-companion-tip strong {
+  flex: 0 0 auto;
+  color: var(--primary-deep);
+}
+
+.safety-assistance-card {
+  display: grid;
+  gap: 12px;
+}
+
+.safety-share-status {
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 13px;
+  color: var(--muted);
+  background: #fff6df;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.safety-share-status span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.safety-share-status small {
+  color: var(--primary-deep);
+  font-size: 11px;
+}
+
+.safety-emergency-copy {
+  display: grid;
+  gap: 5px;
+}
+
+.safety-emergency-copy strong {
+  font-size: 16px;
+}
+
+.safety-emergency-copy p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.safety-share-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  align-items: end;
+  background: rgba(80, 66, 53, 0.28);
+  padding: 0 18px 94px;
+}
+
+.safety-share-backdrop .safety-tool-sheet {
+  width: 100%;
+  background: #fffefa;
+}
+
+.safety-tool-sheet {
+  display: grid;
+  gap: 13px;
+}
+
+.safety-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.safety-sheet-header h3 {
+  margin-top: 5px;
+  font-size: 17px;
+}
+
+.safety-sheet-header > button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--muted);
+  background: #fff5d9;
+}
+
+.wechat-tag {
+  display: inline-flex;
+  border-radius: 999px;
+  color: #528658;
+  background: #edf6df;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.wechat-preview {
+  overflow: hidden;
+  height: 168px;
+  border-radius: 16px;
+  background: #eef0eb;
+}
+
+.wechat-preview img {
+  width: auto;
+  min-width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: left center;
+}
+
+.sos-hold-button {
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 15px;
+  color: #fff;
+  background: #d96d5d;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.sos-hold-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: rgba(122, 39, 36, 0.2);
+}
+
+.sos-hold-button.holding::before {
+  transform: translateX(0);
+  transition: transform 3s linear;
+}
+
+.sos-hold-button.sent {
+  background: #9c8065;
+}
+
+.sos-hold-button svg,
+.sos-hold-button:not(.holding) {
+  position: relative;
+}
+
+.memory-hero {
+  display: grid;
+  gap: 14px;
 }
 
 /* ==========================================================================
@@ -3897,7 +4195,6 @@ article.destination-card {
 .route-card,
 .chat-card,
 .timeline-card,
-.alert-card,
 .share-card,
 .auth-card,
 .profile-action,
@@ -3923,12 +4220,6 @@ article.destination-card {
   background:
     radial-gradient(circle at 16% 12%, rgba(255, 255, 255, 0.86), transparent 28%),
     linear-gradient(135deg, #fff5d9 0%, #fffdf1 54%, #f5f5df 100%);
-}
-
-.night-panel {
-  background:
-    linear-gradient(135deg, rgba(117, 91, 62, 0.92), rgba(166, 120, 67, 0.86)),
-    linear-gradient(135deg, #755b3e, #c79a5c);
 }
 
 .mascot-orbit,
@@ -3984,7 +4275,6 @@ article.destination-card {
 
 .field-control,
 .buddy-name-field input,
-.contact-card input,
 .chat-compose-input,
 .search-box,
 .metric,
@@ -4001,6 +4291,22 @@ article.destination-card {
   background:
     linear-gradient(90deg, rgba(182, 197, 150, 0.18), transparent 48%),
     linear-gradient(135deg, #fff6dd 0%, #faf7e8 100%);
+}
+
+.route-day-two {
+  stroke: #7f9f78;
+}
+
+.profile-action-icon.mint,
+.reserved-state {
+  color: #73875b;
+  background: rgba(182, 197, 150, 0.2);
+}
+
+.trip-state-paused,
+.trip-state-safetyOnly {
+  color: #9a6a2f;
+  background: rgba(243, 204, 125, 0.28);
 }
 
 .input-card,
