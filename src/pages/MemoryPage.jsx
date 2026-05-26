@@ -6,7 +6,7 @@ import {
 import Metric from "../components/Metric.jsx";
 import SegmentedControl from "../components/SegmentedControl.jsx";
 // 引入 photoTimelineData 以替换原有的本地 localTimelineData
-import { memories, moodCurveData, sharePlatforms, evaluationTags, defaultCommentPlaceholder, photoTimelineData } from "../data/mockData.js";
+import { memories, memoryArchives, moodCurveData, sharePlatforms, evaluationTags, defaultCommentPlaceholder, photoTimelineData } from "../data/mockData.js";
 
 import hero1 from "../assets/hero-1.jpg";
 import hero2 from "../assets/hero-2.jpg";
@@ -28,7 +28,12 @@ import mem1 from "../assets/memory-1.jpg";
 import mem2 from "../assets/memory-2.jpg";
 import mem3 from "../assets/memory-3.jpg";
 
+const memoryArchiveCovers = {
+  "guangzhou-2026-05": mem1,
+};
+
 export default function MemoryPage({ showToast }) {
+  const [openedArchive, setOpenedArchive] = useState(null);
   const [platform, setPlatform] = useState("pyq");
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [currentDay, setCurrentDay] = useState(1);
@@ -92,8 +97,43 @@ export default function MemoryPage({ showToast }) {
     setComment(""); 
   };
 
+  if (!openedArchive) {
+    return (
+      <div className="page-stack">
+        <section className="card memory-list-intro">
+          <span className="eyebrow">旅行记忆</span>
+          <h3>先选择一段记忆</h3>
+          <p>每段旅程都会整理成一份独立手帐。现在先放这一段广州独旅，点击后查看完整回忆。</p>
+        </section>
+
+        <section className="memory-archive-list">
+          {memoryArchives.map((archive) => (
+            <button className="memory-archive-card" type="button" key={archive.id} onClick={() => setOpenedArchive(archive)}>
+              <span className="memory-archive-cover" style={{ backgroundImage: `url(${memoryArchiveCovers[archive.id] ?? mem1})` }} />
+              <div>
+                <span className="eyebrow">{archive.city} · {archive.date}</span>
+                <strong>{archive.title}</strong>
+                <p>{archive.summary}</p>
+                <div className="tag-row">
+                  {archive.stats.map((item) => (
+                    <span className="tag" key={item}>{item}</span>
+                  ))}
+                </div>
+              </div>
+              <ChevronRight size={18} />
+            </button>
+          ))}
+        </section>
+      </div>
+    );
+  }
+
   return (
       <div className="page-stack">
+        <button className="memory-detail-back" type="button" onClick={() => setOpenedArchive(null)}>
+          <ChevronLeft size={17} />
+          <span>返回记忆列表</span>
+        </button>
         {/* 顶部英雄卡片 - 替换真实顶部图 */}
         <section className="memory-hero">
           <span className="pill">

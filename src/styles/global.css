@@ -1195,6 +1195,79 @@ p {
   grid-template-columns: 52px 1fr;
 }
 
+.memory-list-intro h3 {
+  margin: 6px 0 8px;
+  color: var(--text);
+  font-size: 20px;
+}
+
+.memory-list-intro p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.memory-archive-list {
+  display: grid;
+  gap: 12px;
+}
+
+.memory-archive-card {
+  display: grid;
+  grid-template-columns: 78px 1fr 22px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fffaf0;
+  text-align: left;
+  box-shadow: 0 14px 30px rgba(176, 124, 40, 0.12);
+}
+
+.memory-archive-cover {
+  display: block;
+  width: 78px;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  background-position: center;
+  background-size: cover;
+}
+
+.memory-archive-card strong,
+.memory-archive-card p {
+  display: block;
+}
+
+.memory-archive-card strong {
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.memory-archive-card p {
+  margin: 6px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.memory-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--primary-deep);
+  font-size: 12px;
+  font-weight: 900;
+}
+
 /* ==========================================================================
    高级交互行程页面与陪伴流控制
    ========================================================================== */
@@ -1522,6 +1595,13 @@ p {
 .ai-tool-bubble .destination-card {
   box-shadow: none;
   background: #f8faff;
+}
+
+.destination-card-hint {
+  margin: 2px 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .chat-compose-bar {
@@ -2112,6 +2192,11 @@ article.destination-card {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.simple-region-actions {
+  margin-top: 2px;
+  justify-content: flex-start;
 }
 
 /* ==========================================================================

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Bike,
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import {
   bookingOptions,
+  cityPlanningOverrides,
   detailedRoutePathByDay,
   destinationIdeas,
   itineraryMapNodes,
@@ -34,6 +35,24 @@ import {
   trafficDetailDays,
   trafficSegments,
 } from "../data/mockData.js";
+import huaxinRoadImage from "../assets/day2-2.jpg";
+import ferryImage from "../assets/day1-3.jpg";
+import oldTownImage from "../assets/day3-2.jpg";
+import xiamenFallbackImage from "../assets/hero-1.jpg";
+import hangzhouFallbackImage from "../assets/hero-2.jpg";
+import chengduFallbackImage from "../assets/hero-3.jpg";
+import botanicalGardenImage from "../assets/spots/botanical-garden.jpg";
+import gulangyuImage from "../assets/spots/gulangyu.jpg";
+import huandaoRoadImage from "../assets/spots/huandao-road.jpg";
+import hulishanImage from "../assets/spots/hulishan.jpg";
+import lingyinImage from "../assets/spots/lingyin.jpg";
+import nanputuoImage from "../assets/spots/nanputuo.jpg";
+import shapoweiImage from "../assets/spots/shapowei.jpg";
+import westLakeImage from "../assets/spots/west-lake.jpg";
+import xiamenUniversityImage from "../assets/spots/xiamen-university.jpg";
+import zhongshanRoadImage from "../assets/spots/zhongshan-road.jpg";
+
+const screenScroller = () => document.querySelector(".screen");
 
 const flowTitles = {
   chat: "和小旅聊方向",
@@ -57,55 +76,62 @@ const nodeIcons = {
   street: Compass,
 };
 
-const commonsImage = (fileName) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=900`;
-
 const spotImages = {
-  沙坡尾: commonsImage("Fishing boats in Shapowei, Xiamen.jpg"),
-  环岛路: commonsImage("20230131 Huandao Road, Xiamen.jpg"),
-  鼓浪屿: commonsImage("2018年的鼓浪屿.jpg"),
-  中山路: commonsImage("Xiamen Zhongshan Road Pedestrian Street.jpg"),
-  八市: commonsImage("Xiamen-Night market.jpg"),
-  南普陀: commonsImage("Nanputuo Temple, Xiamen.jpg"),
-  万石植物园: commonsImage("Cactii at Botanical Garden, Xiamen.jpg"),
-  华新路: commonsImage("Xiamen - Gulangyu - DSCF9805.jpg"),
-  厦门大学外圈: commonsImage("Xiamen University Furong Lake.JPG"),
-  黄厝海滩: commonsImage("20230131 Xiamen Huandao Road at Huangcuo Beach.jpg"),
-  曾厝垵: commonsImage("Zengcuo'an - panoramio.jpg"),
-  白城沙滩: commonsImage("Baicheng Beach, Xiamen.jpg"),
-  胡里山炮台: commonsImage("Hulishan Fortress 01.jpg"),
-  山海健康步道: commonsImage("Xiamen Mountains-to-Sea Trail 20210131.jpg"),
-  菽庄花园: commonsImage("Shuzhuang Garden 20120210.jpg"),
-  日光岩: commonsImage("Sunlight Rock, Gulangyu.jpg"),
-  皓月园: commonsImage("Haoyue Garden, Gulangyu.jpg"),
-  最美转角: commonsImage("Gulangyu, Xiamen, Fujian, China - panoramio (6).jpg"),
-  钢琴博物馆: commonsImage("Piano Museum in Gulangyu.jpg"),
-  轮渡码头外圈: commonsImage("Xiamen ferry terminal.jpg"),
-  中华城商圈: commonsImage("Xiamen Zhongshan Road Pedestrian Street.jpg"),
-  龙井村: commonsImage("Longjing tea village Hangzhou.jpg"),
-  小河直街: commonsImage("运河广场 （ 拱宸桥东边） - panoramio.jpg"),
-  西湖外圈: commonsImage("20090524 Hangzhou West Lake 7539.jpg"),
-  灵隐寺: commonsImage("20231124 Lingyin Temple 01.jpg"),
-  满觉陇: commonsImage("Longjing tea district Hangzhou.jpg"),
-  拱宸桥: commonsImage("20231122 Gongchen Bridge 03.jpg"),
-  法喜寺: commonsImage("Faxi Temple in Hangzhou (Mahavira Hall).jpg"),
-  玉林路: commonsImage("Intersection of Yulin West Road and Yulin North Road 20241007194803.jpg"),
-  人民公园: commonsImage("People's Park, Chengdu, Sichuan, China, 610041 - panoramio.jpg"),
-  宽窄巷子: commonsImage("Kuanzhaixiangzi Alleys, 201907, 01.jpg"),
-  东郊记忆: commonsImage("东郊记忆 (123423479).jpeg"),
-  锦里: commonsImage("Jinli Street 35240-Chengdu (49068155601).jpg"),
-  杜甫草堂: commonsImage("DuFuHouse.jpg"),
-  望平街: commonsImage("Wangping Street.jpg"),
+  沙坡尾: shapoweiImage,
+  环岛路: huandaoRoadImage,
+  鼓浪屿: gulangyuImage,
+  中山路: zhongshanRoadImage,
+  八市: oldTownImage,
+  南普陀: nanputuoImage,
+  万石植物园: botanicalGardenImage,
+  华新路: huaxinRoadImage,
+  厦门大学外圈: xiamenUniversityImage,
+  黄厝海滩: huandaoRoadImage,
+  曾厝垵: huaxinRoadImage,
+  白城沙滩: huandaoRoadImage,
+  胡里山炮台: hulishanImage,
+  山海健康步道: huandaoRoadImage,
+  菽庄花园: gulangyuImage,
+  日光岩: gulangyuImage,
+  皓月园: ferryImage,
+  最美转角: gulangyuImage,
+  钢琴博物馆: gulangyuImage,
+  轮渡码头外圈: ferryImage,
+  中华城商圈: zhongshanRoadImage,
+  龙井村: hangzhouFallbackImage,
+  小河直街: westLakeImage,
+  西湖外圈: westLakeImage,
+  断桥残雪: westLakeImage,
+  柳浪闻莺: westLakeImage,
+  湖滨银泰: westLakeImage,
+  灵隐寺: lingyinImage,
+  永福寺: lingyinImage,
+  满觉陇: hangzhouFallbackImage,
+  拱宸桥: westLakeImage,
+  法喜寺: lingyinImage,
+  河坊街: zhongshanRoadImage,
+  武林夜市: oldTownImage,
+  大兜路: westLakeImage,
+  玉林路: chengduFallbackImage,
+  人民公园: chengduFallbackImage,
+  宽窄巷子: chengduFallbackImage,
+  东郊记忆: chengduFallbackImage,
+  锦里: chengduFallbackImage,
+  杜甫草堂: chengduFallbackImage,
+  望平街: chengduFallbackImage,
 };
 
 const cityFallbackImages = {
-  厦门: commonsImage("Xiamen - View from GulangYu 20091120.jpg"),
-  杭州: commonsImage("20090524 Hangzhou West Lake 7539.jpg"),
-  成都: commonsImage("Kuanzhaixiangzi Alleys, 201907, 01.jpg"),
+  厦门: xiamenFallbackImage,
+  杭州: westLakeImage,
+  成都: chengduFallbackImage,
 };
 
 const getSpotImageUrl = (spotName, city) => {
   return spotImages[spotName] ?? cityFallbackImages[city] ?? cityFallbackImages.厦门;
 };
+
+const simpleChoiceKey = (region, place) => `${region.id}::${place.name}`;
 
 function BuddyChatAvatar({ appearance = "round-bot" }) {
   return (
@@ -139,6 +165,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
   );
   const [selectedOptionListType, setSelectedOptionListType] = useState("spot");
   const [spotDetailReturnFlow, setSpotDetailReturnFlow] = useState("spots");
+  const flowScrollPositionsRef = useRef({});
 
   const cityOptions = destinationIdeas.slice(0, 2);
   const buddyName = buddySettings?.name ?? "小旅";
@@ -147,6 +174,14 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     () => destinationIdeas.find((item) => item.city === selectedCity) ?? destinationIdeas[0],
     [selectedCity],
   );
+  const activePlanning = cityPlanningOverrides[selectedDestination.city] ?? {};
+  const activeItineraryMapNodes = activePlanning.itineraryMapNodes ?? itineraryMapNodes;
+  const activeSimpleMapRegions = activePlanning.simpleMapRegions ?? simpleMapRegions;
+  const activeTrafficSegments = activePlanning.trafficSegments ?? trafficSegments;
+  const activeTrafficDetailDays = activePlanning.trafficDetailDays ?? trafficDetailDays;
+  const activeDetailedRoutePathByDay = activePlanning.detailedRoutePathByDay ?? detailedRoutePathByDay;
+  const activeMapOptionCatalog = activePlanning.mapOptionCatalog ?? mapOptionCatalog;
+  const activeMapOptionDetails = activePlanning.mapOptionDetails ?? mapOptionDetails;
   const allAttractions = useMemo(
     () => destinationIdeas.flatMap((destination) => destination.attractions.map((spot) => ({ ...spot, city: destination.city }))),
     [],
@@ -156,43 +191,43 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     () => {
       const booking = bookingOptions.find((item) => item.name === selectedNode.name);
       if (booking) return booking;
-      const detail = mapOptionDetails[selectedNode.name];
+      const detail = activeMapOptionDetails[selectedNode.name];
       return detail?.type === "酒店" || detail?.type === "饭店" ? { name: selectedNode.name, ...detail } : null;
     },
-    [selectedNode],
+    [activeMapOptionDetails, selectedNode],
   );
 
   const selectedNodeType = selectedNode.type === "hotel" ? "hotel" : selectedNode.type === "food" ? "food" : "spot";
 
   const dayNodes = useMemo(
-    () => itineraryMapNodes.filter((node) => node.day === selectedDay),
-    [selectedDay],
+    () => activeItineraryMapNodes.filter((node) => node.day === selectedDay),
+    [activeItineraryMapNodes, selectedDay],
   );
 
   const finalRouteDays = useMemo(
     () =>
       planningDays.map((day, index) => {
-        const nodes = itineraryMapNodes.filter((node) => node.day === day.id);
+        const nodes = activeItineraryMapNodes.filter((node) => node.day === day.id);
         const route = nodes.map((node) => node.name).join(" - ");
         return {
           ...day,
           color: ["#7067f5", "#2e8f7f", "#bf6a00", "#d9a24c"][index % 4],
           route,
           nodes,
-          path: detailedRoutePathByDay[day.id],
+          path: activeDetailedRoutePathByDay[day.id],
         };
       }),
-    [],
+    [activeDetailedRoutePathByDay, activeItineraryMapNodes],
   );
   const simpleFinalPlan = useMemo(() => {
-    const chosenItems = simpleMapRegions.flatMap((region) =>
+    const chosenItems = activeSimpleMapRegions.flatMap((region) =>
       region.places
-        .filter((place) => chosenSimplePlaces.includes(place.name))
+        .filter((place) => chosenSimplePlaces.includes(simpleChoiceKey(region, place)))
         .map((place) => ({ ...place, region })),
     );
 
     const staying = chosenItems
-      .filter((item) => item.region.tone.includes("住宿"))
+      .filter((item) => item.region.id.includes("hotel") || item.region.tone.includes("住宿"))
       .map((item) => item.name);
     const eating = chosenItems
       .filter((item) => item.region.tone.includes("吃饭") || item.region.tone.includes("补给"))
@@ -201,52 +236,86 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
       .filter((item) => !item.region.tone.includes("住宿") && !item.region.tone.includes("吃饭") && !item.region.tone.includes("补给"))
       .map((item) => item.name);
 
+    const cityFallback =
+      selectedDestination.city === "杭州"
+        ? {
+            stay: "目前没有明确偏好的住宿方向，推荐优先住湖滨/武林这类交通稳定的酒店区",
+            visit: "目前没有明确偏好的游玩方向，推荐前往西湖外圈、灵隐寺、龙井茶山和小河直街等杭州特色打卡点",
+            eat: "目前没有明确偏好的吃饭方向，推荐尝试杭帮菜、知味观小吃和龙井茶园简餐等特色美食",
+          }
+        : {
+            stay: "目前没有明确偏好的住宿方向，推荐优先住交通稳定的岛内主路酒店区",
+            visit: "目前没有明确偏好的游玩方向，推荐前往沙坡尾街区、环岛路骑行、鼓浪屿建筑等厦门特色打卡点",
+            eat: "目前没有明确偏好的吃饭方向，推荐尝试八市海鲜小炒、沙茶面和老街甜汤等特色美食",
+          };
+
     return {
-      stay: staying.length ? staying.join("、") : "岛内主路附近",
-      visit: visiting.length ? visiting.join("、") : selectedDestination.highlights.join("、"),
-      eat: eating.length ? eating.join("、") : "老城小吃和海边简餐",
+      stay: staying.length ? staying.join("、") : cityFallback.stay,
+      visit: visiting.length ? visiting.join("、") : cityFallback.visit,
+      eat: eating.length ? eating.join("、") : cityFallback.eat,
       chosenCount: chosenItems.length,
     };
-  }, [chosenSimplePlaces, selectedDestination.highlights]);
+  }, [activeSimpleMapRegions, chosenSimplePlaces, selectedDestination.city]);
 
   const dayRegions = useMemo(
-    () => simpleMapRegions.filter((region) => region.day === selectedDay),
-    [selectedDay],
+    () => activeSimpleMapRegions.filter((region) => region.day === selectedDay),
+    [activeSimpleMapRegions, selectedDay],
   );
 
   const daySegments = useMemo(
-    () => trafficSegments.filter((segment) => segment.day === selectedDay),
-    [selectedDay],
+    () => activeTrafficSegments.filter((segment) => segment.day === selectedDay),
+    [activeTrafficSegments, selectedDay],
   );
 
   const selectedTrafficDay = useMemo(
-    () => trafficDetailDays.find((day) => day.id === selectedDay),
-    [selectedDay],
+    () => activeTrafficDetailDays.find((day) => day.id === selectedDay),
+    [activeTrafficDetailDays, selectedDay],
   );
 
   useEffect(() => {
-    const frameId = window.requestAnimationFrame(() => {
-      document.querySelector(".screen")?.scrollTo({ top: 0, left: 0 });
-    });
+    const firstDay = planningDays[0]?.id ?? "D1";
+    const firstNode = activeItineraryMapNodes.find((node) => node.day === firstDay) ?? activeItineraryMapNodes[0];
+    const firstRegion = activeSimpleMapRegions.find((region) => region.day === firstDay) ?? activeSimpleMapRegions[0];
+    const firstSegment = activeTrafficSegments.find((segment) => segment.day === firstDay) ?? activeTrafficSegments[0];
 
-    return () => window.cancelAnimationFrame(frameId);
-  }, [flow]);
+    setSelectedDay(firstDay);
+    if (firstNode) setSelectedNode(firstNode);
+    if (firstRegion) setSelectedRegion(firstRegion);
+    if (firstSegment) setSelectedSegment(firstSegment);
+    setChosenSimplePlaces([]);
+    setChosenDetailedSpots(activeItineraryMapNodes.filter((node) => node.type === "spot").map((node) => node.name));
+    setReservedItem("");
+  }, [selectedDestination.city]);
+
+  const rememberFlowScroll = (flowName = flow) => {
+    const scroller = screenScroller();
+    if (scroller) flowScrollPositionsRef.current[flowName] = scroller.scrollTop;
+  };
+
+  const goToFlow = (nextFlow, { reset = false } = {}) => {
+    setFlow(nextFlow);
+    window.requestAnimationFrame(() => {
+      const scroller = screenScroller();
+      if (!scroller) return;
+      scroller.scrollTo({ top: reset ? 0 : (flowScrollPositionsRef.current[nextFlow] ?? 0), left: 0 });
+    });
+  };
 
   useEffect(() => {
-    const nextNode = itineraryMapNodes.find((node) => node.day === selectedDay);
-    const nextRegion = simpleMapRegions.find((region) => region.day === selectedDay);
-    const nextSegment = trafficSegments.find((segment) => segment.day === selectedDay);
+    const nextNode = activeItineraryMapNodes.find((node) => node.day === selectedDay);
+    const nextRegion = activeSimpleMapRegions.find((region) => region.day === selectedDay);
+    const nextSegment = activeTrafficSegments.find((segment) => segment.day === selectedDay);
 
     if (nextNode) setSelectedNode(nextNode);
     if (nextRegion) setSelectedRegion(nextRegion);
     if (nextSegment) setSelectedSegment(nextSegment);
-  }, [selectedDay]);
+  }, [activeItineraryMapNodes, activeSimpleMapRegions, activeTrafficSegments, selectedDay]);
 
   const openCitySpots = (city) => {
     const destination = destinationIdeas.find((item) => item.city === city) ?? destinationIdeas[0];
     setSelectedCity(destination.city);
     setSelectedAttraction(destination.attractions[0]);
-    setFlow("spots");
+    goToFlow("spots", { reset: true });
   };
 
   const openStrategy = (city) => {
@@ -254,7 +323,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     setSelectedCity(destination.city);
     setSelectedAttraction(destination.attractions[0]);
     setPlanMode("");
-    setFlow("strategy");
+    goToFlow("strategy", { reset: true });
   };
 
   const selectMapNode = (node) => {
@@ -308,6 +377,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
   const openOptionDetail = (item, returnFlow = flow) => {
     const attraction = findAttractionDetail(item);
     if (attraction) {
+      rememberFlowScroll(returnFlow);
       setSelectedCity(attraction.city);
       setSelectedAttraction({
         ...attraction,
@@ -315,11 +385,11 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
         intro: attraction.intro ?? item.meta,
       });
       setSpotDetailReturnFlow(returnFlow);
-      setFlow("spotDetail");
+      goToFlow("spotDetail", { reset: true });
       return;
     }
 
-    const detail = mapOptionDetails[item.name] ?? {
+    const detail = activeMapOptionDetails[item.name] ?? {
       type: selectedNodeType === "hotel" ? "酒店" : selectedNodeType === "food" ? "饭店" : "景点",
       rating: "4.5",
       price: item.meta?.split("·")[0]?.trim() ?? "视选择而定",
@@ -327,15 +397,16 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
       detail: item.meta,
     };
 
+    rememberFlowScroll(returnFlow);
     setSelectedBooking({
       name: item.name,
       ...detail,
     });
-    setFlow("bookingDetail");
+    goToFlow("bookingDetail", { reset: true });
   };
 
   const chooseDetailedOption = (item) => {
-    const detail = mapOptionDetails[item.name] ?? {};
+    const detail = activeMapOptionDetails[item.name] ?? {};
     setSelectedNode((node) => ({
       ...node,
       name: item.name,
@@ -356,7 +427,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
 
   const chooseOptionAndReturnToMap = (item) => {
     chooseDetailedOption(item);
-    setFlow("map");
+    goToFlow("map");
     showToast(`已换成${item.name}`);
   };
 
@@ -387,12 +458,21 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
     );
   };
 
-  const toggleSimplePlace = (place) => {
+  const toggleSimplePlace = (place, region) => {
+    const key = simpleChoiceKey(region, place);
+    const isHotelChoice = region.id.includes("hotel") || region.tone.includes("住宿");
     setChosenSimplePlaces((places) => {
-      const exists = places.includes(place.name);
-      if (exists) return places.filter((name) => name !== place.name);
+      const exists = places.includes(key);
+      if (exists) return places.filter((name) => name !== key);
       showToast(`已加入攻略~旅程中会去${place.name}的~`);
-      return [...places, place.name];
+      const nextPlaces = isHotelChoice
+        ? places.filter((name) => {
+            const [regionId] = name.split("::");
+            const existingRegion = activeSimpleMapRegions.find((item) => item.id === regionId);
+            return !(existingRegion?.day === region.day && (existingRegion.id.includes("hotel") || existingRegion.tone.includes("住宿")));
+          })
+        : places;
+      return [...nextPlaces, key];
     });
   };
 
@@ -408,7 +488,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
       optionList: "map",
       final: "map",
     };
-    setFlow(backMap[flow] ?? "chat");
+    goToFlow(backMap[flow] ?? "chat");
   };
 
   const PageHeader = () => (
@@ -462,6 +542,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                 <strong>目的地推荐</strong>
               </div>
             </div>
+            <p className="destination-card-hint">点击城市卡片可以先看具体景点列表，确定城市后再进入攻略制定。</p>
             <div className="destination-card-list">
               {cityOptions.map((item) => (
                 <article className="destination-card" key={item.city}>
@@ -522,9 +603,10 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                 key={spot.name}
                 type="button"
                 onClick={() => {
+                  rememberFlowScroll("spots");
                   setSelectedAttraction(spot);
                   setSpotDetailReturnFlow("spots");
-                  setFlow("spotDetail");
+                  goToFlow("spotDetail", { reset: true });
                 }}
               >
                 <span>{spot.tag}</span>
@@ -620,7 +702,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
             onClick={() => {
               if (!planMode) return;
               showToast("攻略已生成，进入地图调整");
-              setFlow("map");
+              goToFlow("map", { reset: true });
             }}
           >
             <Wand2 size={17} /> 生成攻略并进入地图
@@ -700,25 +782,35 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                 <h3>{selectedRegion.title}</h3>
                 <p>{selectedRegion.summary}</p>
                 <div className="simple-place-grid">
-                  {selectedRegion.places.map((place) => (
-                    <article key={place.name} className="simple-place-card">
-                      <span>{place.tag}</span>
-                      <strong>{place.name}</strong>
-                      <small>{place.meta}</small>
-                      <div className="option-card-actions">
-                        <button type="button" onClick={() => openOptionDetail(place, "map")}>
-                          详情
-                        </button>
-                        <button
-                          className={chosenSimplePlaces.includes(place.name) ? "active" : ""}
-                          type="button"
-                          onClick={() => toggleSimplePlace(place)}
-                        >
-                          {chosenSimplePlaces.includes(place.name) ? "不想去了" : "想去这里"}
-                        </button>
-                      </div>
-                    </article>
-                  ))}
+                  {selectedRegion.places.map((place) => {
+                    const choiceKey = simpleChoiceKey(selectedRegion, place);
+                    const isChosen = chosenSimplePlaces.includes(choiceKey);
+                    const isHotelRegion = selectedRegion.id.includes("hotel") || selectedRegion.tone.includes("住宿");
+                    return (
+                      <article key={place.name} className="simple-place-card">
+                        <span>{place.tag}</span>
+                        <strong>{place.name}</strong>
+                        <small>{place.meta}</small>
+                        <div className="option-card-actions">
+                          <button type="button" onClick={() => openOptionDetail(place, "map")}>
+                            详情
+                          </button>
+                          <button
+                            className={isChosen ? "active" : ""}
+                            type="button"
+                            onClick={() => toggleSimplePlace(place, selectedRegion)}
+                          >
+                            {isChosen ? (isHotelRegion ? "取消这个区域" : "不想去了") : (isHotelRegion ? "选这个区域" : "想去这里")}
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+                <div className="node-card-actions simple-region-actions">
+                  <button className="area-remove-button" type="button" onClick={handleRemoveArea}>
+                    <X size={14} /> 这一块都不想去
+                  </button>
                 </div>
               </section>
             </>
@@ -730,7 +822,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                   <path className="map-neighborhood" d="M18 182 C54 134, 88 154, 122 104 S190 56, 252 88" />
                   <path className="map-street secondary" d="M34 48 C78 78, 110 74, 150 44 S214 22, 284 52" />
                   <path className="map-street secondary" d="M44 206 C94 178, 136 186, 180 154 S236 130, 292 158" />
-                  <path className={`route-day-${selectedDay.toLowerCase()}`} d={detailedRoutePathByDay[selectedDay]} />
+                  <path className={`route-day-${selectedDay.toLowerCase()}`} d={activeDetailedRoutePathByDay[selectedDay]} />
                 </svg>
                 {daySegments.map((segment) => (
                   <button
@@ -798,8 +890,9 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                         className="secondary-button node-current-detail-button"
                         type="button"
                         onClick={() => {
+                          rememberFlowScroll("map");
                           setSelectedBooking(selectedNodeBooking);
-                          setFlow("bookingDetail");
+                          goToFlow("bookingDetail", { reset: true });
                         }}
                       >
                         查看当前选择详情
@@ -862,15 +955,16 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                   <button
                     type="button"
                     onClick={() => {
+                      rememberFlowScroll("map");
                       setSelectedOptionListType(selectedNodeType);
-                      setFlow("optionList");
+                      goToFlow("optionList", { reset: true });
                     }}
                   >
                     查看全部
                   </button>
                 </div>
               </div>
-              <button className="route-summary-card" type="button" onClick={() => setFlow("transportDetail")}>
+              <button className="route-summary-card" type="button" onClick={() => goToFlow("transportDetail", { reset: true })}>
                 <div>
                   <span className="eyebrow">当前路段</span>
                   <strong>{selectedSegment.from} → {selectedSegment.to}</strong>
@@ -890,7 +984,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                     <strong>{segment.method}</strong>
                   </button>
                 ))}
-                <button className="traffic-detail-entry" type="button" onClick={() => setFlow("transportDetail")}>
+                <button className="traffic-detail-entry" type="button" onClick={() => goToFlow("transportDetail", { reset: true })}>
                   <ChevronRight size={15} />
                   <span>查看每天的交通详情</span>
                   <strong>站点/费用/时间</strong>
@@ -898,7 +992,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
               </div>
             </>
           )}
-          <button className="primary-button full flow-bottom-action" type="button" onClick={() => setFlow("final")}>
+          <button className="primary-button full flow-bottom-action" type="button" onClick={() => goToFlow("final", { reset: true })}>
             确定攻略，查看最终行程
           </button>
         </section>
@@ -981,7 +1075,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
               </button>
             ))}
           </div>
-          <button className="primary-button full flow-bottom-action" type="button" onClick={() => setFlow("bookingDetail")}>
+          <button className="primary-button full flow-bottom-action" type="button" onClick={() => goToFlow("bookingDetail", { reset: true })}>
             查看详情并预定
           </button>
         </section>
@@ -1029,7 +1123,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
   }
 
   if (flow === "optionList") {
-    const optionList = mapOptionCatalog[selectedOptionListType] ?? [];
+    const optionList = activeMapOptionCatalog[selectedOptionListType] ?? [];
     const optionTitle = selectedOptionListType === "hotel" ? "可选酒店" : selectedOptionListType === "food" ? "可选饭店" : "可选景点";
 
     return (
@@ -1136,7 +1230,11 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
                 <strong>会安排吃：{simpleFinalPlan.eat}</strong>
               </article>
             </div>
-            <small>已纳入 {simpleFinalPlan.chosenCount} 个你在简约攻略里选择的偏好。</small>
+            <small>
+              {simpleFinalPlan.chosenCount > 0
+                ? `已纳入 ${simpleFinalPlan.chosenCount} 个你在简约攻略里选择的偏好。`
+                : "你还没有明确偏好，我先按厦门特色方向兜底推荐；进入陪伴后可以随时调整。"}
+            </small>
           </div>
         ) : (
           <>
