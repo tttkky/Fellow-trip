@@ -19,7 +19,7 @@
 }
 
 * {
-  box-sizing: border-box;
+  box-sizing: border-box !important;
 }
 
 body {
@@ -31,6 +31,7 @@ body {
     radial-gradient(circle at 84% 18%, rgba(233, 183, 160, 0.16), transparent 32%),
     radial-gradient(circle at 58% 92%, rgba(182, 197, 150, 0.16), transparent 34%),
     linear-gradient(135deg, #fff7df 0%, #fffdf2 56%, #fbf7e7 100%);
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -43,6 +44,9 @@ button {
   cursor: pointer;
 }
 
+/* ==========================================================================
+   布局结构与容器
+   ========================================================================== */
 .stage {
   min-height: 100vh;
   display: grid;
@@ -179,6 +183,9 @@ p {
   gap: 14px;
 }
 
+/* ==========================================================================
+   卡片与面板基础样式
+   ========================================================================== */
 .card,
 .route-card,
 .chat-card,
@@ -679,11 +686,9 @@ p {
   flex: 1;
 }
 
-.chat-card {
-  display: grid;
-  gap: 12px;
-}
-
+/* ==========================================================================
+   行前生成与智能规划对话
+   ========================================================================== */
 .ai-message {
   display: grid;
   grid-template-columns: 28px 1fr;
@@ -891,6 +896,9 @@ p {
   color: var(--primary);
 }
 
+/* ==========================================================================
+   夜间安全模式与 SOS 紧急联络
+   ========================================================================== */
 .night-panel {
   display: grid;
   grid-template-columns: 1fr 86px;
@@ -955,15 +963,9 @@ p {
   background: #f9fbff;
 }
 
-.alert-card {
-  background: linear-gradient(135deg, #fff6ed, #fff);
-}
-
-.memory-hero {
-  display: grid;
-  gap: 14px;
-}
-
+/* ==========================================================================
+   注册/登录与个人中心
+   ========================================================================== */
 .auth-screen {
   height: calc(100% - 34px);
   display: flex;
@@ -1159,6 +1161,9 @@ p {
   width: 100%;
 }
 
+/* ==========================================================================
+   MemoryPage 旅程手帐拼图模块
+   ========================================================================== */
 .photo-collage {
   display: grid;
   grid-template-columns: 1.3fr 1fr 0.8fr;
@@ -1174,31 +1179,25 @@ p {
     linear-gradient(180deg, #fff, #f4f7ff);
 }
 
+.photo-collage span:nth-child(1) {
+  background: url(/src/assets/hero-1.jpg) center/cover no-repeat !important;
+}
+
 .photo-collage span:nth-child(2) {
-  background: linear-gradient(135deg, rgba(255, 190, 123, 0.82), rgba(246, 180, 212, 0.45));
+  background: url(/src/assets/hero-2.jpg) center/cover no-repeat !important;
 }
 
 .photo-collage span:nth-child(3) {
-  background: linear-gradient(135deg, rgba(112, 103, 245, 0.72), rgba(238, 250, 255, 0.9));
+  background: url(/src/assets/hero-3.jpg) center/cover no-repeat !important;
 }
 
 .memory-row {
   grid-template-columns: 52px 1fr;
 }
 
-.memory-thumb {
-  width: 48px;
-  height: 48px;
-}
-
-.share-card {
-  background: linear-gradient(135deg, #f5f2ff, #fff);
-}
-
-.share-card .primary-button {
-  margin-top: 12px;
-}
-
+/* ==========================================================================
+   高级交互行程页面与陪伴流控制
+   ========================================================================== */
 .stars {
   color: var(--warm);
   font-size: 13px;
@@ -1381,6 +1380,9 @@ p {
   color: var(--primary);
 }
 
+/* ==========================================================================
+   智能助手形象骨架 (Chat Buddy Mini Body)
+   ========================================================================== */
 .chat-buddy-avatar {
   position: relative;
   width: 30px;
@@ -1850,6 +1852,9 @@ article.destination-card {
   line-height: 1.45;
 }
 
+/* ==========================================================================
+   多方案主图与自适应地图图层
+   ========================================================================== */
 .planner-map {
   position: relative;
   height: 238px;
@@ -1913,18 +1918,12 @@ article.destination-card {
   stroke-width: 6;
 }
 
-.route-day-one {
-  stroke: var(--primary);
-}
-
-.route-day-two {
-  stroke: #2e8f7f;
-}
-
+.route-day-one,
 .route-day-d1 {
   stroke: var(--primary);
 }
 
+.route-day-two,
 .route-day-d2 {
   stroke: #2e8f7f;
 }
@@ -1995,7 +1994,6 @@ article.destination-card {
     opacity: 0.85;
     transform: scale(0.86);
   }
-
   100% {
     opacity: 0;
     transform: scale(1.28);
@@ -2116,6 +2114,9 @@ article.destination-card {
   line-height: 1.45;
 }
 
+/* ==========================================================================
+   线路点击热区 (Map SVG Click Hitbox Position)
+   ========================================================================== */
 .map-route-hit {
   position: absolute;
   z-index: 2;
@@ -2172,17 +2173,9 @@ article.destination-card {
 }
 
 @keyframes map-refresh-flash {
-  0% {
-    filter: brightness(1);
-  }
-
-  50% {
-    filter: brightness(1.08) saturate(1.08);
-  }
-
-  100% {
-    filter: brightness(1);
-  }
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.08) saturate(1.08); }
+  100% { filter: brightness(1); }
 }
 
 .node-detail {
@@ -2544,11 +2537,6 @@ article.destination-card {
   line-height: 1.4;
 }
 
-.booking-detail {
-  display: grid;
-  gap: 8px;
-}
-
 .booking-detail-page {
   min-height: 240px;
   align-content: start;
@@ -2575,11 +2563,6 @@ article.destination-card {
 
 .booking-detail .secondary-button {
   justify-self: start;
-}
-
-.transport-detail-card {
-  display: grid;
-  gap: 12px;
 }
 
 .transport-day-list,
@@ -2640,6 +2623,9 @@ article.destination-card {
   line-height: 1.45;
 }
 
+/* ==========================================================================
+   向导卡片面板与局部对话浮层
+   ========================================================================== */
 .planner-buddy-assistant {
   position: absolute;
   right: 18px;
@@ -2772,7 +2758,7 @@ article.destination-card {
   padding: 22px 28px;
 }
 
-.planner-rebuild-overlay strong {
+.planner-rebuild-overlay > div strong {
   color: var(--text);
   font-size: 16px;
 }
@@ -2787,11 +2773,12 @@ article.destination-card {
 }
 
 @keyframes rebuild-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
+/* ==========================================================================
+   终版行程、多天卡片列表与终版图层样式
+   ========================================================================== */
 .final-route-map {
   display: grid;
   gap: 10px;
@@ -2855,10 +2842,6 @@ article.destination-card {
   border-radius: 999px;
 }
 
-.final-map {
-  margin-bottom: 12px;
-}
-
 .final-map svg path {
   fill: none;
   stroke-width: 5;
@@ -2877,17 +2860,9 @@ article.destination-card {
   box-shadow: 0 8px 14px rgba(76, 83, 126, 0.18);
 }
 
-.final-map-node-hotel {
-  background: #d86151;
-}
-
-.final-map-node-food {
-  background: #55a868;
-}
-
-.final-map-node-spot {
-  background: #e3aa35;
-}
+.final-map-node-hotel { background: #d86151; }
+.final-map-node-food { background: #55a868; }
+.final-map-node-spot { background: #e3aa35; }
 
 .final-map-legend {
   display: flex;
@@ -2914,6 +2889,9 @@ article.destination-card {
   border-radius: 50%;
 }
 
+/* ==========================================================================
+   进行时陪伴页面 (Companion Live Mode)
+   ========================================================================== */
 .companion-page {
   gap: 13px;
 }
@@ -2931,10 +2909,6 @@ article.destination-card {
   padding: 16px;
 }
 
-.companion-hero {
-  background: linear-gradient(135deg, #eef9ff 0%, #f7f0ff 58%, #fff8ee 100%);
-}
-
 .companion-hero h2 {
   margin: 11px 0 8px;
   font-size: 24px;
@@ -2948,12 +2922,6 @@ article.destination-card {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.5;
-}
-
-.companion-list-card,
-.nearby-list {
-  display: grid;
-  gap: 10px;
 }
 
 .empty-trip-state {
@@ -2986,7 +2954,7 @@ article.destination-card {
   display: inline-flex;
   width: fit-content;
   border-radius: 999px;
-  background: #eef5ff;
+  background: #fff5d9;
   color: var(--primary-deep);
   padding: 6px 9px;
   font-size: 11px;
@@ -2994,14 +2962,14 @@ article.destination-card {
 }
 
 .trip-state-active {
-  color: #2e8f7f;
-  background: rgba(123, 220, 200, 0.22);
+  color: #73875b;
+  background: rgba(182, 197, 150, 0.2);
 }
 
 .trip-state-paused,
 .trip-state-safetyOnly {
-  color: #bf6a00;
-  background: rgba(255, 190, 123, 0.24);
+  color: #9a6a2f;
+  background: rgba(243, 204, 125, 0.28);
 }
 
 .trip-route-preview {
@@ -3036,13 +3004,6 @@ article.destination-card {
   font-weight: 900;
 }
 
-.companion-topbar {
-  display: grid;
-  grid-template-columns: 40px 1fr auto;
-  align-items: center;
-  gap: 10px;
-}
-
 .companion-topbar h2 {
   margin-top: 3px;
   font-size: 18px;
@@ -3061,12 +3022,7 @@ article.destination-card {
   place-items: center;
   border-radius: 12px;
   color: var(--primary-deep);
-  background: #f0f3ff;
-}
-
-.companion-live-card {
-  display: grid;
-  gap: 12px;
+  background: #fff5d9;
 }
 
 .companion-map {
@@ -3075,8 +3031,8 @@ article.destination-card {
   overflow: hidden;
   border-radius: 18px;
   background:
-    linear-gradient(90deg, rgba(123, 220, 200, 0.2), transparent 50%),
-    linear-gradient(135deg, #eefaff 0%, #f5f1ff 100%);
+    linear-gradient(90deg, rgba(182, 197, 150, 0.18), transparent 48%),
+    linear-gradient(135deg, #fff6dd 0%, #faf7e8 100%);
 }
 
 .companion-map svg {
@@ -3142,8 +3098,8 @@ article.destination-card {
   border-radius: 24px;
   color: var(--primary);
   background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.92), transparent 30%),
-    linear-gradient(145deg, rgba(123, 220, 200, 0.3), rgba(112, 103, 245, 0.2), rgba(246, 180, 212, 0.26));
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.88), transparent 30%),
+    linear-gradient(145deg, rgba(243, 204, 125, 0.36), rgba(217, 162, 76, 0.14), rgba(182, 197, 150, 0.2));
 }
 
 .nearby-list button {
@@ -3179,6 +3135,9 @@ article.destination-card {
   font-size: 12px;
 }
 
+/* ==========================================================================
+   页面底部通用固定导航栏
+   ========================================================================== */
 .bottom-nav {
   position: absolute;
   left: 14px;
@@ -3188,10 +3147,10 @@ article.destination-card {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 4px;
-  border: 1px solid rgba(232, 236, 248, 0.9);
+  border: 1px solid rgba(241, 223, 191, 0.9);
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 18px 36px rgba(76, 83, 126, 0.2);
+  background: rgba(255, 254, 250, 0.95);
+  box-shadow: 0 12px 28px rgba(128, 91, 42, 0.11);
   padding: 8px;
 }
 
@@ -3210,9 +3169,12 @@ article.destination-card {
 
 .nav-item.active {
   color: var(--primary-deep);
-  background: #f0f3ff;
+  background: #fff5d9;
 }
 
+/* ==========================================================================
+   悬浮球形态智能陪伴助手 (Floating Buddy Window)
+   ========================================================================== */
 .floating-buddy-wrap {
   position: absolute;
   z-index: 6;
@@ -3223,16 +3185,15 @@ article.destination-card {
 }
 
 .floating-buddy {
-  position: relative;
+  position: absolute;
+  right: 20px;
+  bottom: 92px;
+  z-index: 6;
   width: 58px;
   height: 58px;
-  display: grid;
-  place-items: center;
   border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 16px 34px rgba(86, 75, 216, 0.22);
-  touch-action: none;
-  user-select: none;
+  background: #fffefa;
+  box-shadow: 0 16px 34px rgba(128, 91, 42, 0.12);
 }
 
 .buddy-face {
@@ -3258,8 +3219,8 @@ article.destination-card {
   place-items: center;
   border-radius: 18px;
   background:
-    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.9), transparent 30%),
-    linear-gradient(145deg, rgba(123, 220, 200, 0.32), rgba(112, 103, 245, 0.18), rgba(246, 180, 212, 0.28));
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.88), transparent 30%),
+    linear-gradient(145deg, rgba(243, 204, 125, 0.36), rgba(217, 162, 76, 0.14), rgba(182, 197, 150, 0.2));
   overflow: hidden;
 }
 
@@ -3339,10 +3300,10 @@ article.destination-card {
   display: grid;
   justify-items: center;
   gap: 10px;
-  border: 1px solid rgba(232, 236, 248, 0.95);
+  border: 1px solid rgba(241, 223, 191, 0.9);
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 18px 40px rgba(76, 83, 126, 0.24);
+  background: rgba(255, 254, 250, 0.95);
+  box-shadow: 0 12px 28px rgba(128, 91, 42, 0.11);
   padding: 16px 14px 14px;
   text-align: center;
 }
@@ -3374,7 +3335,7 @@ article.destination-card {
   place-items: center;
   border-radius: 10px;
   color: var(--muted);
-  background: #f5f7ff;
+  background: #fff5d9;
 }
 
 .floating-buddy-avatar {
@@ -3390,13 +3351,8 @@ article.destination-card {
   height: 34px;
 }
 
-.floating-buddy-avatar::before {
-  left: 25px;
-}
-
-.floating-buddy-avatar::after {
-  right: 25px;
-}
+.floating-buddy-avatar::before { left: 25px; }
+.floating-buddy-avatar::after { right: 25px; }
 
 .floating-buddy-avatar .buddy-avatar-head {
   top: 18px;
@@ -3438,26 +3394,420 @@ article.destination-card {
   bottom: 166px;
   z-index: 10;
   border-radius: 14px;
-  background: rgba(32, 35, 58, 0.92);
+  background: rgba(91, 75, 58, 0.92);
   color: #fff;
   padding: 12px 14px;
   text-align: center;
   font-size: 13px;
-  box-shadow: 0 14px 30px rgba(32, 35, 58, 0.24);
+  box-shadow: 0 14px 30px rgba(91, 75, 58, 0.2);
 }
 
-/* Softer pale-yellow warm palette */
-.header-back-button,
-.history-record-button,
-.icon-button,
-.floating-buddy,
-.floating-buddy-popover,
-.auth-card,
-.bottom-nav {
-  box-shadow: 0 12px 28px rgba(128, 91, 42, 0.11);
+/* ==========================================================================
+   MemoryPage 旅程手帐页面 - 精准无拉伸照片流布局
+   ========================================================================== */
+.mood-container {
+  padding: 10px 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* Warm visual theme overrides */
+.mood-svg-box {
+  width: 100%;
+  height: 100px;
+  overflow: visible;
+}
+
+.mood-line {
+  fill: none;
+  stroke: url(#moodGradient);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.mood-dot-glow {
+  fill: var(--primary);
+  stroke: #fff;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 2px 5px rgba(112, 103, 245, 0.4));
+}
+
+.mood-text {
+  font-size: 11px;
+  fill: var(--muted);
+  font-weight: bold;
+}
+
+.photo-timeline-flow {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  margin-top: 16px !important;
+  width: 100% !important;
+  padding-left: 2px;
+}
+
+.timeline-photo-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  width: 100% !important;
+  position: relative;
+}
+
+.timeline-photo-row::before {
+  content: "";
+  position: absolute;
+  left: 62px;
+  top: 48px;
+  bottom: -22px;
+  width: 2px;
+  background: var(--line);
+}
+
+.timeline-photo-row:last-child::before {
+  display: none;
+}
+
+.time-left {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  width: 40px !important;
+  padding-top: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+.photo-timeline-card {
+  display: flex !important;
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: 0 4px 12px rgba(91, 99, 148, 0.03) !important;
+  flex: 1 !important;
+  width: calc(100% - 52px) !important;
+  min-width: 0;
+}
+
+.photo-placeholder-box {
+  width: 80px !important;
+  height: 80px !important;
+  min-width: 80px !important;
+  min-height: 80px !important;
+  flex-shrink: 0 !important;
+  border-radius: 11px 0 0 11px !important;
+  border-right: 1px solid var(--line) !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-color: #f0f3ff !important;
+  opacity: 1 !important;
+}
+
+.photo-timeline-card:nth-child(even) .photo-placeholder-box {
+  background-color: #f7fbff !important;
+}
+
+.photo-info-box {
+  padding: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+}
+
+.photo-info-box strong {
+  display: block !important;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 4px !important;
+}
+
+.photo-info-box p {
+  margin: 4px 0 0 0 !important;
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  line-height: 1.4 !important;
+  white-space: normal;
+  word-break: break-all;
+}
+
+/* ==========================================================================
+   陪伴回忆片段布局修复与交互手帐项
+   ========================================================================== */
+.memory-row-clickable {
+  cursor: pointer !important;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.memory-row-clickable:active,
+.memory-row-clickable:hover {
+  transform: scale(0.98);
+  background: #f1f1f5 !important;
+}
+
+.click-tip {
+  font-size: 11px !important;
+  color: var(--primary) !important;
+  font-weight: 500 !important;
+  margin-top: 2px !important;
+}
+
+.memory-thumb {
+  width: 64px !important;
+  height: 64px !important;
+  min-width: 64px !important;
+  min-height: 64px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  flex-shrink: 0 !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-color: #eef0f3 !important;
+}
+
+.memory-row div {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  flex: 1 !important;
+}
+
+.memory-row strong {
+  font-size: 14px !important;
+  color: var(--text) !important;
+}
+
+.memory-row p {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  margin: 4px 0 !important;
+  line-height: 1.4 !important;
+}
+
+/* ==========================================================================
+   日期切换与高级复盘评价组件
+   ========================================================================== */
+.day-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-soft);
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+}
+
+.day-info {
+  text-align: center;
+}
+
+.day-info strong {
+  display: block;
+  font-size: 15px;
+  color: var(--primary-deep);
+}
+
+.day-info span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.nav-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: var(--primary);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.nav-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.timeline-fade-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.timeline-fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s;
+}
+
+.rating-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.star-row {
+  display: flex;
+  gap: 8px;
+}
+
+.star-item {
+  font-size: 26px;
+  color: var(--line);
+  cursor: pointer;
+  transition: transform 0.15s, color 0.15s;
+}
+
+.star-item.active {
+  color: #FFB800;
+  filter: drop-shadow(0 2px 4px rgba(255,184,0,0.25));
+}
+
+.star-item:active {
+  transform: scale(1.2);
+}
+
+.rating-hint {
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.eval-tag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.eval-tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.eval-tag.selected {
+  background: linear-gradient(135deg, rgba(112,103,245,0.1), rgba(245,103,167,0.1));
+  color: var(--primary-deep);
+  border: 1px solid rgba(112,103,245,0.3);
+  font-weight: 600;
+}
+
+.eval-feedback-box {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.eval-textarea {
+  width: 100%;
+  height: 80px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  font-size: 12px;
+  color: var(--text);
+  resize: none;
+  outline: none;
+}
+
+.eval-textarea:focus {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.submit-eval-btn {
+  width: 100%;
+  margin-top: 12px;
+  background: linear-gradient(135deg, var(--primary), #8a80ff);
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(112,103,245,0.2);
+}
+
+.submit-eval-btn:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
+   手帐弹窗模态层 (Modal Content Style)
+   ========================================================================== */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  background: rgba(22, 24, 41, 0.45);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: end;
+}
+
+.modal-content {
+  width: 100%;
+  background: #fff;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 20px 20px 32px;
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+  animation: slideUp 0.25s ease-out;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.close-modal-btn {
+  background: var(--surface-soft);
+  color: var(--muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: bold;
+}
+
+.modal-body {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #4e546e;
+  background: var(--surface-soft);
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* ==========================================================================
+   皮肤与高级视觉主题色彩平滑重写 (Warm Tone Palette Overrides)
+   ========================================================================== */
 .card,
 .route-card,
 .chat-card,
@@ -3474,7 +3824,6 @@ article.destination-card {
 .companion-topbar,
 .intro-bubble,
 .ai-tool-bubble,
-.bottom-nav,
 .floating-buddy-popover {
   border-color: rgba(241, 223, 191, 0.9);
   background: rgba(255, 254, 250, 0.95);
@@ -3509,7 +3858,6 @@ article.destination-card {
 
 .buddy-avatar,
 .chat-buddy-avatar,
-.buddy-cartoon,
 .floating-buddy-mini-avatar {
   background:
     radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.88), transparent 30%),
@@ -3537,28 +3885,6 @@ article.destination-card {
   --buddy-soft: #fff8e8;
 }
 
-.pill,
-.tag,
-.time-chip,
-.score-chip,
-.trip-state {
-  background: #fff5d9;
-  color: var(--primary-deep);
-}
-
-.secondary-button,
-.segmented,
-.nav-item.active,
-.history-record-button,
-.header-back-button,
-.quick-row button,
-.chat-compose-bar button,
-.floating-buddy-close,
-.trip-exit-actions button {
-  background: #fff5d9;
-  color: var(--primary-deep);
-}
-
 .segmented button.active,
 .destination.active,
 .choice.active,
@@ -3579,7 +3905,6 @@ article.destination-card {
 .metric,
 .spot-detail,
 .preference-box,
-.node-detail,
 .booking-detail,
 .ai-bubble {
   background: #fff8e6;
@@ -3587,69 +3912,45 @@ article.destination-card {
 }
 
 .mini-map,
-.planner-map:not(.planner-map-detailed),
-.companion-map {
+.planner-map:not(.planner-map-detailed) {
   background:
     linear-gradient(90deg, rgba(182, 197, 150, 0.18), transparent 48%),
     linear-gradient(135deg, #fff6dd 0%, #faf7e8 100%);
 }
 
-.route-day-two {
-  stroke: #7f9f78;
-}
-
-.safety-icon,
-.profile-action-icon.mint,
-.reserved-state {
-  color: #73875b;
-  background: rgba(182, 197, 150, 0.2);
-}
-
-.safety-icon.warning,
-.trip-state-paused,
-.trip-state-safetyOnly {
-  color: #9a6a2f;
-  background: rgba(243, 204, 125, 0.28);
-}
-
 .input-card,
 .share-card,
-.floating-ai-window,
-.alert-card {
+.floating-ai-window {
   background: linear-gradient(135deg, #fff6dc, #fffefa);
 }
 
-.photo-collage span,
-.memory-thumb {
-  background:
-    linear-gradient(135deg, rgba(243, 204, 125, 0.7), rgba(217, 162, 76, 0.18)),
-    linear-gradient(180deg, #fffefa, #fff7df);
-}
+/* ==========================================================================
+   静态图片资产绑定与移动端媒介查询
+   ========================================================================== */
+.hero-img-1 { background-image: url('../assets/hero-1.jpg'); }
+.hero-img-2 { background-image: url('../assets/hero-2.jpg'); }
+.hero-img-3 { background-image: url('../assets/hero-3.jpg'); }
 
-.photo-collage span:nth-child(2) {
-  background: linear-gradient(135deg, rgba(233, 183, 160, 0.56), rgba(243, 204, 125, 0.42));
-}
+.img-day1-1 { background-image: url('../assets/day1-1.jpg'); }
+.img-day1-2 { background-image: url('../assets/day1-2.jpg'); }
+.img-day1-3 { background-image: url('../assets/day1-3.jpg'); }
 
-.photo-collage span:nth-child(3) {
-  background: linear-gradient(135deg, rgba(182, 197, 150, 0.62), rgba(255, 250, 232, 0.94));
-}
+.img-day2-1 { background-image: url('../assets/day2-1.jpg'); }
+.img-day2-2 { background-image: url('../assets/day2-2.jpg'); }
+.img-day2-3 { background-image: url('../assets/day2-3.jpg'); }
 
-.floating-buddy,
-.icon-button {
-  background: #fffefa;
-  box-shadow: 0 16px 34px rgba(128, 91, 42, 0.12);
-}
+.img-day3-1 { background-image: url('../assets/day3-1.jpg'); }
+.img-day3-2 { background-image: url('../assets/day3-2.jpg'); }
+.img-day3-3 { background-image: url('../assets/day3-3.jpg'); }
 
-.toast {
-  background: rgba(91, 75, 58, 0.92);
-  box-shadow: 0 14px 30px rgba(91, 75, 58, 0.2);
-}
+.img-mem-1 { background-image: url('../assets/memory-1.jpg'); }
+.img-mem-2 { background-image: url('../assets/memory-2.jpg'); }
+.img-mem-3 { background-image: url('../assets/memory-3.jpg'); }
 
 @media (max-width: 430px) {
   .stage {
     padding: 0;
   }
-
   .phone-shell {
     width: 100%;
     height: 100vh;
