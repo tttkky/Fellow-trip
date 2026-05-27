@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Bell, History } from "lucide-react";
 import BottomNav from "./components/BottomNav.jsx";
 import FloatingBuddy from "./components/FloatingBuddy.jsx";
@@ -78,6 +78,9 @@ export default function App() {
   const [selectedMemoryArchiveId, setSelectedMemoryArchiveId] = useState(null);
   const [pageHistory, setPageHistory] = useState([]);
   const [toast, setToast] = useState("");
+  const screenRef = useRef(null);
+  const scrollPositionsRef = useRef({});
+  const pendingScrollRef = useRef({ type: "top" });
 
   useEffect(() => {
     saveStoredState({
@@ -101,8 +104,15 @@ export default function App() {
     window.__fellowTripToast = window.setTimeout(() => setToast(""), 2200);
   };
 
+  const saveCurrentScrollPosition = () => {
+    const screen = screenRef.current;
+    if (!screen) return;
+    scrollPositionsRef.current[activePage] = screen.scrollTop;
+  };
+
   const navigateToPage = (nextPage, options = {}) => {
     if (nextPage === activePage) return;
+    saveCurrentScrollPosition();
 
     if (nextPage === "memory") {
       setSelectedMemoryArchiveId(options.archiveId ?? null);
@@ -114,6 +124,7 @@ export default function App() {
       setPageHistory((history) => [...history, activePage].slice(-8));
     }
 
+    pendingScrollRef.current = { type: "top" };
     setActivePage(nextPage);
   };
 
@@ -121,9 +132,30 @@ export default function App() {
     const previousPage = pageHistory[pageHistory.length - 1];
     if (!previousPage) return;
 
+    saveCurrentScrollPosition();
+    pendingScrollRef.current = {
+      type: "restore",
+      page: previousPage,
+    };
     setPageHistory((history) => history.slice(0, -1));
     setActivePage(previousPage);
   };
+
+  useEffect(() => {
+    const screen = screenRef.current;
+    if (!screen) return;
+
+    const pendingScroll = pendingScrollRef.current;
+    window.requestAnimationFrame(() => {
+      if (pendingScroll.type === "restore") {
+        screen.scrollTop = scrollPositionsRef.current[pendingScroll.page] ?? 0;
+      } else {
+        screen.scrollTop = 0;
+      }
+      screen.focus({ preventScroll: true });
+      pendingScrollRef.current = { type: "top" };
+    });
+  }, [effectivePage]);
 
   const handleAuthSuccess = (authMode = "login") => {
     const isRegistering = authMode === "register";
@@ -158,10 +190,16 @@ export default function App() {
       confirmedTrips,
     });
     if (effectivePage === "buddySettings") {
+      saveCurrentScrollPosition();
+      pendingScrollRef.current = {
+        type: "restore",
+        page: buddySettingsReturnPage,
+      };
       setPageHistory((history) => history.slice(0, -1));
       setActivePage(buddySettingsReturnPage);
     } else {
       setPageHistory([]);
+      pendingScrollRef.current = { type: "top" };
       setActivePage("home");
     }
     showToast(effectivePage === "buddySettings" ? "搭子设置已保存" : "小旅已准备好和你规划下一段旅程");
@@ -306,7 +344,7 @@ export default function App() {
           </div>
         </div>
 
-        <section className={shouldShowNav ? "screen" : "screen no-nav"}>
+        <section ref={screenRef} className={shouldShowNav ? "screen" : "screen no-nav"} tabIndex={-1}>
           {effectivePage === "buddySetup" && (
             <BuddyPage
               variant="onboarding"
