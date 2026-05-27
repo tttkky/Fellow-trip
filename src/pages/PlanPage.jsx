@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Bot,
@@ -109,6 +109,7 @@ export default function PlanPage({
   const [quickAction, setQuickAction] = useState(null);
   const [quickStage, setQuickStage] = useState("idle");
   const [tripPendingDelete, setTripPendingDelete] = useState(null);
+  const companionScrollRef = useRef(0);
 
   const activeTrip = useMemo(
     () => confirmedTrips.find((trip) => trip.id === activeTripId) ?? confirmedTrips[0],
@@ -161,9 +162,36 @@ export default function PlanPage({
 
   useEffect(() => {
     if (quickStage !== "loading") return undefined;
-    const timer = window.setTimeout(() => setQuickStage("result"), 1200);
+    const timer = window.setTimeout(() => {
+      setQuickStage("result");
+      window.requestAnimationFrame(() => {
+        const screen = document.querySelector(".screen");
+        screen?.scrollTo({ top: 0 });
+        screen?.focus({ preventScroll: true });
+      });
+    }, 1200);
     return () => window.clearTimeout(timer);
   }, [quickStage]);
+
+  const saveCompanionScroll = () => {
+    companionScrollRef.current = document.querySelector(".screen")?.scrollTop ?? 0;
+  };
+
+  const restoreCompanionScroll = () => {
+    window.requestAnimationFrame(() => {
+      const screen = document.querySelector(".screen");
+      screen?.scrollTo({ top: companionScrollRef.current });
+      screen?.focus({ preventScroll: true });
+    });
+  };
+
+  const scrollInternalPageTop = () => {
+    window.requestAnimationFrame(() => {
+      const screen = document.querySelector(".screen");
+      screen?.scrollTo({ top: 0 });
+      screen?.focus({ preventScroll: true });
+    });
+  };
 
   const enterTrip = (trip) => {
     setActiveTripId(trip.id);
@@ -184,6 +212,7 @@ export default function PlanPage({
   };
 
   const openQuickAction = (action) => {
+    saveCompanionScroll();
     setQuickAction(action);
     setQuickStage("loading");
   };
@@ -191,6 +220,18 @@ export default function PlanPage({
   const closeQuickAction = () => {
     setQuickAction(null);
     setQuickStage("idle");
+    restoreCompanionScroll();
+  };
+
+  const openSpotDetail = (spot) => {
+    saveCompanionScroll();
+    setSelectedSpot(spot);
+    scrollInternalPageTop();
+  };
+
+  const closeSpotDetail = () => {
+    setSelectedSpot(null);
+    restoreCompanionScroll();
   };
 
   const requestDeleteTrip = (trip) => {
@@ -304,7 +345,7 @@ export default function PlanPage({
     return (
       <div className="page-stack companion-page">
         <div className="companion-topbar">
-          <button className="flow-back" type="button" onClick={() => setSelectedSpot(null)} aria-label="返回当前行程">
+          <button className="flow-back" type="button" onClick={closeSpotDetail} aria-label="返回当前行程">
             <ArrowLeft size={17} />
           </button>
           <div>
@@ -395,7 +436,7 @@ export default function PlanPage({
             </section>
           )}
 
-          <button className="primary-button full flow-bottom-action" type="button" onClick={() => setSelectedSpot(null)}>
+          <button className="primary-button full flow-bottom-action" type="button" onClick={closeSpotDetail}>
             回到当前行程
           </button>
         </section>
@@ -667,7 +708,7 @@ export default function PlanPage({
         </div>
         <div className="nearby-list">
           {expandedNearbySpots.map((spot) => (
-            <button key={spot.name} type="button" onClick={() => setSelectedSpot(spot)}>
+            <button key={spot.name} type="button" onClick={() => openSpotDetail(spot)}>
               <MapPinned size={16} />
               <div>
                 <strong>{spot.name}</strong>
