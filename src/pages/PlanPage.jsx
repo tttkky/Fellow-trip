@@ -4,6 +4,8 @@ import {
   Bot,
   Camera,
   ChevronRight,
+  CloudMoon,
+  CloudSun,
   Coffee,
   Info,
   MapPinned,
@@ -14,6 +16,7 @@ import {
   Send,
   Settings,
   ShieldCheck,
+  SunMedium,
   Trash2,
   Utensils,
   X,
@@ -94,15 +97,34 @@ const allAttractionDetails = destinationIdeas.flatMap((destination) =>
 
 const getSpotImageUrl = (spotName, city) => spotImages[spotName] ?? cityFallbackImages[city] ?? cityFallbackImages.厦门;
 
+const fallbackWeatherTips = [
+  "今日晴到多云，气温约 25-30°C，海边体感偏热，建议及时补水。",
+  "傍晚海风会增强，前往沙坡尾拍照时可带一件轻薄外套。",
+];
+
+const todayForecast = [
+  { time: "09:00", weather: "晴间多云", temperature: "26°", icon: CloudSun },
+  { time: "12:00", weather: "晴", temperature: "30°", icon: SunMedium },
+  { time: "17:00", weather: "多云", temperature: "28°", icon: CloudSun },
+  { time: "21:00", weather: "少云", temperature: "25°", icon: CloudMoon },
+];
+
+const fallbackNearbyFoods = [
+  "沙坡尾海边咖啡馆",
+  "一人食海鲜餐厅",
+  "适合短暂休息的甜品店",
+];
+
 export default function PlanPage({
   confirmedTrips = [],
+  activeTripId,
+  setActiveTripId,
   setActivePage,
   showToast,
   updateTripStatus,
   deleteTrip,
   buddySettings,
 }) {
-  const [activeTripId, setActiveTripId] = useState("");
   const [selectedSpot, setSelectedSpot] = useState(null);
   const [spokenLine, setSpokenLine] = useState("");
   const [companionInput, setCompanionInput] = useState("");
@@ -137,7 +159,7 @@ export default function PlanPage({
 
   const buddyName = buddySettings?.name ?? "小旅";
   const buddyAppearance = buddySettings?.appearance ?? "round-bot";
-  const nearbyFoodItems = activeTrip?.nearbyFoods ?? [];
+  const nearbyFoodItems = activeTrip?.nearbyFoods?.length ? activeTrip.nearbyFoods : fallbackNearbyFoods;
   const drinkItems = nearbyFoodItems.filter((item) => /咖啡|甜品|饮品|茶|酒/.test(item));
   const mealItems = nearbyFoodItems.filter((item) => !/咖啡|甜品|饮品|茶|酒/.test(item));
   const photoSpot = expandedNearbySpots.find((spot) => photoGuide[spot.name]) ?? expandedNearbySpots[0];
@@ -572,12 +594,7 @@ export default function PlanPage({
 
       <section className="companion-map-card">
         <div className="companion-map" aria-label="当前行程地图">
-          <svg viewBox="0 0 300 150" role="presentation">
-            <path d="M30 112 C76 42, 126 114, 164 58 S238 36, 270 76" />
-          </svg>
-          <span className="live-node hotel">住</span>
-          <span className="live-node current">你</span>
-          <span className="live-node next">景</span>
+          <img className="companion-map-image" src="/images/companion-map-shapowei.png" alt="沙坡尾附近地图" />
         </div>
         <div className="node-detail">
           <div>
@@ -670,11 +687,33 @@ export default function PlanPage({
         <div className="section-title">
           <div>
             <span className="eyebrow">实时提醒</span>
-            <h3>天气和节奏</h3>
+            <h3>天气</h3>
           </div>
         </div>
+        <div className="weather-summary">
+          <div className="weather-current-icon">
+            <CloudSun size={30} />
+          </div>
+          <div className="weather-current-copy">
+            <strong>晴间多云 <b>28°C</b></strong>
+            <span>沙坡尾 · 体感 30°C · 最高 30° / 最低 25°</span>
+          </div>
+        </div>
+        <div className="weather-hourly" aria-label="今日分时天气预报">
+          {todayForecast.map((forecast) => {
+            const WeatherIcon = forecast.icon;
+            return (
+              <div className="weather-hour" key={forecast.time}>
+                <span>{forecast.time}</span>
+                <WeatherIcon size={19} />
+                <strong>{forecast.temperature}</strong>
+                <small>{forecast.weather}</small>
+              </div>
+            );
+          })}
+        </div>
         <div className="live-tips-list">
-          {activeTrip.liveTips?.map((tip) => (
+          {fallbackWeatherTips.map((tip) => (
             <div className="live-tip-item" key={tip}>
               <Info size={16} />
               <span>{tip}</span>

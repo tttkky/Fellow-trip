@@ -75,6 +75,7 @@ export default function App() {
   const [confirmedTrips, setConfirmedTrips] = useState(
     orderConfirmedTrips(storedState.confirmedTrips ?? confirmedCompanionTrips),
   );
+  const [activeCompanionTripId, setActiveCompanionTripId] = useState("");
   const [selectedMemoryArchiveId, setSelectedMemoryArchiveId] = useState(null);
   const [pageHistory, setPageHistory] = useState([]);
   const [toast, setToast] = useState("");
@@ -374,6 +375,8 @@ export default function App() {
           {effectivePage === "plan" && (
             <PlanPage
               confirmedTrips={confirmedTrips}
+              activeTripId={activeCompanionTripId}
+              setActiveTripId={setActiveCompanionTripId}
               setActivePage={navigateToPage}
               showToast={showToast}
               updateTripStatus={updateTripStatus}
