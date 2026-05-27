@@ -3,7 +3,7 @@ import { ArrowLeft, Bell, History } from "lucide-react";
 import BottomNav from "./components/BottomNav.jsx";
 import FloatingBuddy from "./components/FloatingBuddy.jsx";
 import StatusBar from "./components/StatusBar.jsx";
-import { buddyProfile, confirmedCompanionTrips } from "./data/mockData.js";
+import { buddyProfile, confirmedCompanionTrips, userProfile } from "./data/mockData.js";
 import { navItems } from "./navigation.js";
 import AuthPage from "./pages/AuthPage.jsx";
 import BuddyPage from "./pages/BuddyPage.jsx";
@@ -26,6 +26,15 @@ const defaultSafetyPreferences = {
   remoteRouteHint: true,
   locationShareReminder: true,
   emergencyContactReminder: true,
+};
+const DEFAULT_COMPANION_TRIP_ID = "xiamen-2026";
+
+const orderConfirmedTrips = (trips) => {
+  const list = Array.isArray(trips) ? trips : [];
+  return [
+    ...list.filter((trip) => trip.id === DEFAULT_COMPANION_TRIP_ID),
+    ...list.filter((trip) => trip.id !== DEFAULT_COMPANION_TRIP_ID),
+  ];
 };
 
 const loadStoredState = () => {
@@ -55,11 +64,17 @@ export default function App() {
   const [mode, setMode] = useState(storedBuddySettings.companionMode ?? "realtime");
   const [buddyReady, setBuddyReady] = useState(Boolean(storedOnboardingCompleted));
   const [buddySettings, setBuddySettings] = useState(storedBuddySettings);
+  const [profileSettings, setProfileSettings] = useState({
+    ...userProfile,
+    ...storedState.userProfile,
+  });
   const [safetyPreferences, setSafetyPreferences] = useState({
     ...defaultSafetyPreferences,
     ...storedState.safetyPreferences,
   });
-  const [confirmedTrips, setConfirmedTrips] = useState(storedState.confirmedTrips ?? confirmedCompanionTrips);
+  const [confirmedTrips, setConfirmedTrips] = useState(
+    orderConfirmedTrips(storedState.confirmedTrips ?? confirmedCompanionTrips),
+  );
   const [selectedMemoryArchiveId, setSelectedMemoryArchiveId] = useState(null);
   const [pageHistory, setPageHistory] = useState([]);
   const [toast, setToast] = useState("");
@@ -68,9 +83,10 @@ export default function App() {
     saveStoredState({
       selectedBuddy: buddySettings,
       onboardingCompleted: buddyReady,
+      userProfile: profileSettings,
       safetyPreferences,
     });
-  }, [buddyReady, buddySettings, safetyPreferences]);
+  }, [buddyReady, buddySettings, profileSettings, safetyPreferences]);
 
   const effectivePage = isAuthenticated && !buddyReady ? "buddySetup" : activePage;
 
@@ -127,6 +143,7 @@ export default function App() {
 
   const handleBuddyComplete = (nextBuddySettings) => {
     const mergedSettings = { ...buddySettings, ...nextBuddySettings };
+    const buddySettingsReturnPage = pageHistory[pageHistory.length - 1] ?? "profile";
     setBuddySettings(mergedSettings);
     setBuddyReady(true);
     if (mergedSettings.companionMode) {
@@ -140,8 +157,13 @@ export default function App() {
       selectedBuddy: mergedSettings,
       confirmedTrips,
     });
-    setPageHistory([]);
-    setActivePage(effectivePage === "buddySettings" ? "profile" : "home");
+    if (effectivePage === "buddySettings") {
+      setPageHistory((history) => history.slice(0, -1));
+      setActivePage(buddySettingsReturnPage);
+    } else {
+      setPageHistory([]);
+      setActivePage("home");
+    }
     showToast(effectivePage === "buddySettings" ? "搭子设置已保存" : "小旅已准备好和你规划下一段旅程");
   };
 
@@ -194,7 +216,7 @@ export default function App() {
     };
 
     setConfirmedTrips((trips) => {
-      const nextTrips = [newTrip, ...trips];
+      const nextTrips = orderConfirmedTrips([...trips, newTrip]);
       saveStoredState({ confirmedTrips: nextTrips });
       return nextTrips;
     });
@@ -204,7 +226,7 @@ export default function App() {
 
   const updateTripStatus = (tripId, status, statusText) => {
     setConfirmedTrips((trips) => {
-      const nextTrips = trips.map((trip) => (trip.id === tripId ? { ...trip, status, statusText } : trip));
+      const nextTrips = orderConfirmedTrips(trips.map((trip) => (trip.id === tripId ? { ...trip, status, statusText } : trip)));
       saveStoredState({ confirmedTrips: nextTrips });
       return nextTrips;
     });
@@ -212,7 +234,7 @@ export default function App() {
 
   const deleteTrip = (tripId) => {
     setConfirmedTrips((trips) => {
-      const nextTrips = trips.filter((trip) => trip.id !== tripId);
+      const nextTrips = orderConfirmedTrips(trips.filter((trip) => trip.id !== tripId));
       saveStoredState({ confirmedTrips: nextTrips });
       return nextTrips;
     });
@@ -233,6 +255,12 @@ export default function App() {
     showToast("安全偏好已保存");
   };
 
+  const handleProfileSettingsChange = (nextProfile) => {
+    setProfileSettings(nextProfile);
+    saveStoredState({ userProfile: nextProfile });
+    showToast("个人信息已保存");
+  };
+
   if (!isAuthenticated) {
     return (
       <main className="stage">
@@ -246,7 +274,7 @@ export default function App() {
   }
 
   const shouldShowNav = buddyReady && effectivePage !== "buddySettings";
-  const shouldShowBuddy = buddyReady && effectivePage !== "buddySettings" && effectivePage !== "home";
+  const shouldShowBuddy = buddyReady && effectivePage !== "buddySettings" && effectivePage !== "home" && effectivePage !== "plan";
   const shouldShowHeaderBack = pageHistory.length > 0 && effectivePage !== "home" && effectivePage !== "buddySetup";
 
   return (
@@ -312,6 +340,7 @@ export default function App() {
               showToast={showToast}
               updateTripStatus={updateTripStatus}
               deleteTrip={deleteTrip}
+              buddySettings={buddySettings}
             />
           )}
           {effectivePage === "safety" && <SafetyPage showToast={showToast} safetyPreferences={safetyPreferences} />}
@@ -320,9 +349,11 @@ export default function App() {
           )}
           {effectivePage === "profile" && (
             <ProfilePage
+              userSettings={profileSettings}
               buddySettings={buddySettings}
               safetyPreferences={safetyPreferences}
               onEditBuddy={() => navigateToPage("buddySettings")}
+              onEditProfile={handleProfileSettingsChange}
               onEditSafety={handleSafetyPreferencesChange}
               onOpenTrip={(archive) =>
                 navigateToPage("memory", {
