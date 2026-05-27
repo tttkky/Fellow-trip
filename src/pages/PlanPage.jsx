@@ -1,19 +1,25 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Bot,
   Camera,
   ChevronRight,
+  Coffee,
   Info,
   MapPinned,
   Pause,
   Play,
   Route,
+  Search,
+  Send,
+  Settings,
   ShieldCheck,
   Trash2,
+  Utensils,
   X,
 } from "lucide-react";
-import { destinationIdeas, spotGuide, photoGuide } from "../data/mockData";
+import BuddyAvatar from "../components/BuddyAvatar.jsx";
+import { destinationIdeas, photoGuide, spotGuide } from "../data/mockData";
 import huaxinRoadImage from "../assets/day2-2.jpg";
 import ferryImage from "../assets/day1-3.jpg";
 import oldTownImage from "../assets/day3-2.jpg";
@@ -88,18 +94,82 @@ const allAttractionDetails = destinationIdeas.flatMap((destination) =>
 
 const getSpotImageUrl = (spotName, city) => spotImages[spotName] ?? cityFallbackImages[city] ?? cityFallbackImages.厦门;
 
-export default function PlanPage({ confirmedTrips = [], setActivePage, showToast, updateTripStatus, deleteTrip }) {
+export default function PlanPage({
+  confirmedTrips = [],
+  setActivePage,
+  showToast,
+  updateTripStatus,
+  deleteTrip,
+  buddySettings,
+}) {
   const [activeTripId, setActiveTripId] = useState("");
   const [selectedSpot, setSelectedSpot] = useState(null);
+  const [spokenLine, setSpokenLine] = useState("");
+  const [companionInput, setCompanionInput] = useState("");
+  const [quickAction, setQuickAction] = useState(null);
+  const [quickStage, setQuickStage] = useState("idle");
+  const [tripPendingDelete, setTripPendingDelete] = useState(null);
 
   const activeTrip = useMemo(
     () => confirmedTrips.find((trip) => trip.id === activeTripId) ?? confirmedTrips[0],
     [activeTripId, confirmedTrips],
   );
 
+  const expandedNearbySpots = useMemo(() => {
+    if (!activeTrip) return [];
+
+    const routeCity = destinationIdeas.find((destination) => destination.city === activeTrip.city);
+    const mergedSpots = [...(activeTrip.nearbySpots ?? [])];
+    const existingNames = new Set(mergedSpots.map((spot) => spot.name));
+
+    routeCity?.attractions?.forEach((spot, index) => {
+      if (existingNames.has(spot.name)) return;
+      mergedSpots.push({
+        ...spot,
+        distance: index < 3 ? `${(1.6 + index * 0.7).toFixed(1)}km` : `${(2.8 + index * 0.5).toFixed(1)}km`,
+      });
+      existingNames.add(spot.name);
+    });
+
+    return mergedSpots.slice(0, 8);
+  }, [activeTrip]);
+
+  const buddyName = buddySettings?.name ?? "小旅";
+  const buddyAppearance = buddySettings?.appearance ?? "round-bot";
+  const nearbyFoodItems = activeTrip?.nearbyFoods ?? [];
+  const drinkItems = nearbyFoodItems.filter((item) => /咖啡|甜品|饮品|茶|酒/.test(item));
+  const mealItems = nearbyFoodItems.filter((item) => !/咖啡|甜品|饮品|茶|酒/.test(item));
+  const photoSpot = expandedNearbySpots.find((spot) => photoGuide[spot.name]) ?? expandedNearbySpots[0];
+  const activePhotoGuide = photoSpot ? photoGuide[photoSpot.name] : null;
+
+  useEffect(() => {
+    if (!activeTripId || !activeTrip?.buddyLine) {
+      setSpokenLine("");
+      return undefined;
+    }
+
+    setSpokenLine("");
+    let index = 0;
+    const timer = window.setInterval(() => {
+      index += 1;
+      setSpokenLine(activeTrip.buddyLine.slice(0, index));
+      if (index >= activeTrip.buddyLine.length) window.clearInterval(timer);
+    }, 42);
+
+    return () => window.clearInterval(timer);
+  }, [activeTripId, activeTrip?.buddyLine]);
+
+  useEffect(() => {
+    if (quickStage !== "loading") return undefined;
+    const timer = window.setTimeout(() => setQuickStage("result"), 1200);
+    return () => window.clearTimeout(timer);
+  }, [quickStage]);
+
   const enterTrip = (trip) => {
     setActiveTripId(trip.id);
     setSelectedSpot(null);
+    setQuickAction(null);
+    setQuickStage("idle");
     updateTripStatus?.(trip.id, "active", "陪伴中");
     showToast("已进入当前行程陪伴");
   };
@@ -108,7 +178,42 @@ export default function PlanPage({ confirmedTrips = [], setActivePage, showToast
     if (activeTrip) updateTripStatus?.(activeTrip.id, status, statusText);
     setActiveTripId("");
     setSelectedSpot(null);
+    setQuickAction(null);
+    setQuickStage("idle");
     showToast(message);
+  };
+
+  const openQuickAction = (action) => {
+    setQuickAction(action);
+    setQuickStage("loading");
+  };
+
+  const closeQuickAction = () => {
+    setQuickAction(null);
+    setQuickStage("idle");
+  };
+
+  const requestDeleteTrip = (trip) => {
+    setTripPendingDelete(trip);
+  };
+
+  const cancelDeleteTrip = () => {
+    setTripPendingDelete(null);
+  };
+
+  const confirmDeleteTrip = () => {
+    if (!tripPendingDelete) return;
+    deleteTrip?.(tripPendingDelete.id);
+    setTripPendingDelete(null);
+  };
+
+  const submitCompanionInput = (event) => {
+    event.preventDefault();
+    const nextMessage = companionInput.trim();
+    if (!nextMessage) return;
+    setCompanionInput("");
+    setSpokenLine(`${buddyName} 收到：${nextMessage}`);
+    showToast("已发送给搭子");
   };
 
   if (!activeTripId) {
@@ -151,7 +256,7 @@ export default function PlanPage({ confirmedTrips = [], setActivePage, showToast
                   <button className="primary-button full companion-start-button" type="button" onClick={() => enterTrip(trip)}>
                     <Play size={16} /> 开始陪伴
                   </button>
-                  <button className="trip-delete-button" type="button" onClick={() => deleteTrip?.(trip.id)}>
+                  <button className="trip-delete-button" type="button" onClick={() => requestDeleteTrip(trip)}>
                     <Trash2 size={15} /> 删除行程
                   </button>
                 </div>
@@ -159,6 +264,23 @@ export default function PlanPage({ confirmedTrips = [], setActivePage, showToast
             ))
           )}
         </section>
+
+        {tripPendingDelete && (
+          <div className="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-trip-title">
+            <div className="confirm-dialog">
+              <strong id="delete-trip-title">确定删除这个行程吗？</strong>
+              <p>删除后，这个陪伴行程会从列表中移除。</p>
+              <div className="confirm-dialog-actions">
+                <button type="button" className="secondary-button" onClick={cancelDeleteTrip}>
+                  取消
+                </button>
+                <button type="button" className="danger-button" onClick={confirmDeleteTrip}>
+                  确定删除
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -281,164 +403,291 @@ export default function PlanPage({ confirmedTrips = [], setActivePage, showToast
     );
   }
 
+  if (quickStage === "result" && quickAction) {
+    const pageTitle =
+      quickAction === "meal" ? "附近饭店" : quickAction === "drink" ? "饮品休息" : "拍照接管";
+
     return (
-      <div className="page-stack companion-page companion-mode">
+      <div className="page-stack companion-page companion-mode quick-action-page">
         <div className="companion-bg" aria-hidden="true" />
-        <div className="companion-topbar glassmorphism">
-          <button className="flow-back" type="button" onClick={() => setActiveTripId("")} aria-label="返回行程列表">
+        <div className="companion-live-topbar">
+          <button className="flow-back" type="button" onClick={closeQuickAction} aria-label="返回陪伴页">
             <ArrowLeft size={17} />
           </button>
           <div>
-            <span className="eyebrow">当前陪伴和行程</span>
-            <h2>{activeTrip.title}</h2>
-            <span className="companion-status">
-              <span className="live-dot" aria-hidden="true" />
-              <Bot size={14} /> 陪伴中
-            </span>
+            <span className="eyebrow">快捷需求</span>
+            <h2>{pageTitle}</h2>
           </div>
-          <div className="trip-exit-actions">
-            <button type="button" className="icon-button" onClick={() => exitTrip("safetyOnly", "已退出陪伴", "已退出行程陪伴，安全功能仍然打开")} aria-label="退出行程">
-              <X size={15} />
-            </button>
-            <button type="button" className="icon-button" onClick={() => exitTrip("paused", "已暂停", "行程已暂停，安全功能仍然打开")} aria-label="退出并暂停行程">
-              <Pause size={15} />
-            </button>
-            <button type="button" className="primary-button end-companion" onClick={() => exitTrip("completed", "已结束", "已结束陪伴，旅程已记录")} aria-label="结束陪伴">
-              结束陪伴
-            </button>
-          </div>
+          <span />
         </div>
 
-        <section className="companion-live-card glassmorphism">
-          <div className="companion-map" aria-label="当前行程地图">
-            <svg viewBox="0 0 300 150" role="presentation">
-              <path d="M30 112 C76 42, 126 114, 164 58 S238 36, 270 76" />
-            </svg>
-            <span className="live-node hotel">住</span>
-            <span className="live-node current">你</span>
-            <span className="live-node next">景</span>
-          </div>
-          <div className="node-detail">
-            <div>
-              <span>当前位置 · {activeTrip.currentPlace}</span>
-              <strong>下一站：{activeTrip.nextPlace}</strong>
-              <p>点击路段可查看交通方式和预计时间。安全守护仍在后台运行。</p>
+        {quickAction === "meal" && (
+          <section className="quick-result-card">
+            <div className="section-title">
+              <div>
+                <span className="eyebrow">附近饭店</span>
+                <h3>适合现在一个人吃的店</h3>
+              </div>
             </div>
-            <button type="button" onClick={() => showToast("步行 16 分钟，打车约 8 分钟")}>
-              <Route size={14} /> 路段
-            </button>
-          </div>
-        </section>
-        
-        <section className="buddy-speech-card glassmorphism" aria-live="polite">
-  <div className="buddy-cartoon" aria-hidden="true">
-    <Bot size={40} />
-  </div>
+            <div className="quick-result-list">
+              {(mealItems.length ? mealItems : ["一人食海鲜饭", "主街简餐店", "低负担轻食"]).map((item, index) => (
+                <article key={item}>
+                  <strong>{item}</strong>
+                  <span>{index === 0 ? "步行 6-9 分钟 · 有单人位" : "主街附近 · 返程方便"}</span>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
-  <div className="voice-wave" aria-hidden="true">
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
+        {quickAction === "drink" && (
+          <section className="quick-result-card">
+            <div className="section-title">
+              <div>
+                <span className="eyebrow">饮品休息</span>
+                <h3>可以坐下缓一缓的地方</h3>
+              </div>
+            </div>
+            <div className="quick-result-list">
+              {(drinkItems.length ? drinkItems : ["街角咖啡馆", "安静甜品店", "茶饮补给点"]).map((item, index) => (
+                <article key={item}>
+                  <strong>{item}</strong>
+                  <span>{index === 0 ? "靠窗座位 · 适合整理照片" : "人流稳定 · 适合短暂停留"}</span>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
-  <div>
-    <span className="eyebrow">搭子转文字</span>
-    <p>{activeTrip.buddyLine}</p>
-  </div>
-</section>
-
-<section className="live-tips-card glassmorphism">
-  <div className="section-title">
-    <div>
-      <span className="eyebrow">实时陪伴</span>
-      <h3>小旅正在陪伴你</h3>
-    </div>
-  </div>
-
-  <div className="live-tips-list">
-    {activeTrip.liveTips?.map((tip) => (
-      <div className="live-tip-item" key={tip}>
-        <Bot size={16} />
-        <span>{tip}</span>
+        {quickAction === "photo" && (
+          <section className="photo-assist-card">
+            <div className="section-title">
+              <div>
+                <span className="eyebrow">拍照接管</span>
+                <h3>{photoSpot?.name ?? "当前位置"} 机位指导</h3>
+              </div>
+              <Camera size={18} />
+            </div>
+            <div className="camera-preview" aria-label="相机预览">
+              <div className="camera-grid" aria-hidden="true" />
+              <span className="camera-stand-point">站这里</span>
+              <span className="camera-phone-point">手机放这</span>
+            </div>
+            <div className="photo-step-list">
+              <p>{activePhotoGuide?.composition ?? "把主街或建筑边缘放在画面三分之一处，人物站在亮面一侧。"}</p>
+              <p>{activePhotoGuide?.lighting ?? "现在光线偏柔，侧光会更显轮廓，避免背后强反光。"}</p>
+              <p>你准备好了告诉我，我就按快门啦。</p>
+            </div>
+          </section>
+        )}
       </div>
-    ))}
-  </div>
-</section>
+    );
+  }
 
-<section className="emotion-card glassmorphism">
-  <div className="section-title">
-    <div>
-      <span className="eyebrow">情绪陪伴</span>
-      <h3>小旅想对你说</h3>
-    </div>
-  </div>
-
-  <div className="emotion-list">
-    {activeTrip.emotionCare?.map((item) => (
-      <div className="emotion-item" key={item}>
-        💛 {item}
+  return (
+    <div className="page-stack companion-page companion-mode">
+      <div className="companion-bg" aria-hidden="true" />
+      <div className="companion-live-topbar">
+        <button className="flow-back" type="button" onClick={() => setActiveTripId("")} aria-label="返回行程列表">
+          <ArrowLeft size={17} />
+        </button>
+        <div>
+          <span className="eyebrow">当前陪伴</span>
+          <h2>{activeTrip.title}</h2>
+        </div>
+        <button className="icon-button" type="button" onClick={() => setActivePage("buddySettings")} aria-label="搭子设置">
+          <Settings size={17} />
+        </button>
       </div>
-    ))}
-  </div>
-</section>
 
-<section className="food-card glassmorphism">
-  <div className="section-title">
-    <div>
-      <span className="eyebrow">附近推荐</span>
-      <h3>适合独自旅行的地点</h3>
-    </div>
-  </div>
+      <section className="companion-buddy-stage" aria-live="polite">
+        <BuddyAvatar type={buddyAppearance} className="companion-center-buddy" title={`${buddyName} avatar`} />
+        <div className="companion-speech-bubble">
+          <p>{spokenLine || activeTrip.buddyLine}</p>
+        </div>
+        <form className="companion-text-input" onSubmit={submitCompanionInput}>
+          <input
+            value={companionInput}
+            onChange={(event) => setCompanionInput(event.target.value)}
+            placeholder={`输入想对${buddyName}说的话`}
+            aria-label="输入给搭子的话"
+          />
+          <button type="submit" aria-label="发送给搭子">
+            <Send size={15} />
+          </button>
+        </form>
+        <div className="trip-exit-actions companion-live-actions">
+          <button type="button" className="icon-button" onClick={() => exitTrip("safetyOnly", "已退出陪伴", "已退出行程陪伴，安全功能仍然打开")} aria-label="退出行程">
+            <X size={15} />
+          </button>
+          <button type="button" className="icon-button" onClick={() => exitTrip("paused", "已暂停", "行程已暂停，安全功能仍然打开")} aria-label="退出并暂停行程">
+            <Pause size={15} />
+          </button>
+          <button type="button" className="primary-button end-companion" onClick={() => exitTrip("completed", "已结束", "已结束陪伴，旅程已记录")} aria-label="结束陪伴">
+            结束
+          </button>
+        </div>
+      </section>
 
-  <div className="food-list">
-    {activeTrip.nearbyFoods?.map((food) => (
-      <div className="food-item" key={food}>
-        🍜 {food}
-      </div>
-    ))}
-  </div>
-</section>
-
-<section className="nearby-card glassmorphism">
-  <div className="section-title"></div>
-          <div className="buddy-cartoon" aria-hidden="true">
-            <Bot size={40} />
-          </div>
-          <div className="voice-wave" aria-hidden="true">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
+      <section className="companion-map-card">
+        <div className="companion-map" aria-label="当前行程地图">
+          <svg viewBox="0 0 300 150" role="presentation">
+            <path d="M30 112 C76 42, 126 114, 164 58 S238 36, 270 76" />
+          </svg>
+          <span className="live-node hotel">住</span>
+          <span className="live-node current">你</span>
+          <span className="live-node next">景</span>
+        </div>
+        <div className="node-detail">
           <div>
-            <span className="eyebrow">搭子转文字</span>
-            <p>{activeTrip.buddyLine}</p>
+            <span>当前位置 · {activeTrip.currentPlace}</span>
+            <strong>下一站：{activeTrip.nextPlace}</strong>
+            <p>主路步行约 16 分钟，打车约 8 分钟。安全守护仍在后台运行。</p>
           </div>
-        </section>
+          <button type="button" onClick={() => showToast("步行 16 分钟，打车约 8 分钟")}>
+            <Route size={14} /> 路段
+          </button>
+        </div>
+      </section>
 
-        <section className="nearby-card glassmorphism">
+      <section className="companion-quick-actions" aria-label="快捷需求">
+        <button type="button" onClick={() => openQuickAction("meal")}>
+          <Utensils size={16} />
+          <span>想吃饭</span>
+        </button>
+        <button type="button" onClick={() => openQuickAction("drink")}>
+          <Coffee size={16} />
+          <span>想喝点东西</span>
+        </button>
+        <button type="button" onClick={() => openQuickAction("photo")}>
+          <Camera size={16} />
+          <span>想拍照</span>
+        </button>
+      </section>
+
+      {quickStage === "result" && quickAction === "meal" && (
+        <section className="quick-result-card">
           <div className="section-title">
             <div>
-              <span className="eyebrow">附近景点</span>
-              <h3>点击进入景点详情</h3>
+              <span className="eyebrow">附近饭店</span>
+              <h3>适合现在一个人吃的店</h3>
             </div>
           </div>
-          <div className="nearby-list">
-            {activeTrip.nearbySpots.map((spot) => (
-              <button key={spot.name} type="button" onClick={() => setSelectedSpot(spot)}>
-                <MapPinned size={16} />
-                <div>
-                  <strong>{spot.name}</strong>
-                  <span>{spot.tag} · {spot.distance}</span>
-                </div>
-                <ChevronRight size={16} />
-              </button>
+          <div className="quick-result-list">
+            {(mealItems.length ? mealItems : ["一人食海鲜饭", "主街简餐店", "低负担轻食"]).map((item, index) => (
+              <article key={item}>
+                <strong>{item}</strong>
+                <span>{index === 0 ? "步行 6-9 分钟 · 有单人位" : "主街附近 · 返程方便"}</span>
+              </article>
             ))}
           </div>
         </section>
-      </div>
-    );
+      )}
+
+      {quickStage === "result" && quickAction === "drink" && (
+        <section className="quick-result-card">
+          <div className="section-title">
+            <div>
+              <span className="eyebrow">饮品休息</span>
+              <h3>可以坐下缓一缓的地方</h3>
+            </div>
+          </div>
+          <div className="quick-result-list">
+            {(drinkItems.length ? drinkItems : ["街角咖啡馆", "安静甜品店", "茶饮补给点"]).map((item, index) => (
+              <article key={item}>
+                <strong>{item}</strong>
+                <span>{index === 0 ? "靠窗座位 · 适合整理照片" : "人流稳定 · 适合短暂停留"}</span>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {quickStage === "result" && quickAction === "photo" && (
+        <section className="photo-assist-card">
+          <div className="section-title">
+            <div>
+              <span className="eyebrow">拍照接管</span>
+              <h3>{photoSpot?.name ?? "当前位置"} 机位指导</h3>
+            </div>
+            <Camera size={18} />
+          </div>
+          <div className="camera-preview" aria-label="相机预览">
+            <div className="camera-grid" aria-hidden="true" />
+            <span className="camera-stand-point">站这里</span>
+            <span className="camera-phone-point">手机放这</span>
+          </div>
+          <div className="photo-step-list">
+            <p>{activePhotoGuide?.composition ?? "把主街或建筑边缘放在画面三分之一处，人物站在亮面一侧。"}</p>
+            <p>{activePhotoGuide?.lighting ?? "现在光线偏柔，侧光会更显轮廓，避免背后强反光。"}</p>
+            <p>你准备好了告诉我，我就按快门啦。</p>
+          </div>
+        </section>
+      )}
+
+      <section className="live-tips-card">
+        <div className="section-title">
+          <div>
+            <span className="eyebrow">实时提醒</span>
+            <h3>天气和节奏</h3>
+          </div>
+        </div>
+        <div className="live-tips-list">
+          {activeTrip.liveTips?.map((tip) => (
+            <div className="live-tip-item" key={tip}>
+              <Info size={16} />
+              <span>{tip}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="food-card">
+        <div className="section-title">
+          <div>
+            <span className="eyebrow">附近推荐</span>
+            <h3>补给和休息点</h3>
+          </div>
+        </div>
+        <div className="food-list">
+          {nearbyFoodItems.map((food) => (
+            <div className="food-item" key={food}>
+              <Coffee size={15} /> {food}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="nearby-card">
+        <div className="section-title">
+          <div>
+            <span className="eyebrow">附近景点</span>
+            <h3>点击进入景点详情</h3>
+          </div>
+        </div>
+        <div className="nearby-list">
+          {expandedNearbySpots.map((spot) => (
+            <button key={spot.name} type="button" onClick={() => setSelectedSpot(spot)}>
+              <MapPinned size={16} />
+              <div>
+                <strong>{spot.name}</strong>
+                <span>{spot.tag} · {spot.distance}</span>
+              </div>
+              <ChevronRight size={16} />
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {quickStage === "loading" && (
+        <div className="quick-action-modal" role="status" aria-live="polite">
+          <div>
+            <Search size={20} />
+            <strong>{quickAction === "photo" ? "正在启动拍照指导" : "正在搜索附近推荐"}</strong>
+            <span>{buddyName} 正在看你附近的位置和路线</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

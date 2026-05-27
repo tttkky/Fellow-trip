@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
-import { Bot, Grip, MessageCircle, X } from "lucide-react";
+import { Grip, MessageCircle, X } from "lucide-react";
+import BuddyAvatar from "./BuddyAvatar.jsx";
 
 const TIPS = [
   "附近有不错的拍照点哦～",
@@ -15,7 +16,6 @@ const TIPS = [
 export default function FloatingBuddy({ mode, buddy, onClick }) {
   const [position, setPosition] = useState({ right: 20, bottom: 160 });
   const [isOpen, setIsOpen] = useState(false);
-  const [cartoonMode, setCartoonMode] = useState(false);
   const [currentTip, setCurrentTip] = useState("");
   const [tipFading, setTipFading] = useState(false);
   const dragRef = useRef(null);
@@ -113,11 +113,7 @@ export default function FloatingBuddy({ mode, buddy, onClick }) {
           <button className="floating-buddy-close" type="button" onClick={() => setIsOpen(false)} aria-label="关闭搭子形象">
             <X size={14} />
           </button>
-          <div className={`buddy-avatar floating-buddy-avatar buddy-avatar-${appearance}`} aria-hidden="true">
-            <span className="buddy-avatar-head" />
-            <span className="buddy-avatar-face" />
-            <span className="buddy-avatar-body" />
-          </div>
+          <BuddyAvatar type={appearance} className="floating-buddy-avatar" title={`${buddyName} avatar`} />
           <div>
             <span className="eyebrow">当前搭子</span>
             <strong>{buddyName}</strong>
@@ -133,17 +129,7 @@ export default function FloatingBuddy({ mode, buddy, onClick }) {
         onTouchStart={startDrag}
         aria-label="拖动或唤醒 FellowTrip 搭子"
       >
-        {cartoonMode ? (
-          <span className={`floating-buddy-mini-avatar buddy-avatar-${appearance}`} aria-hidden="true">
-            <span className="mini-avatar-head" />
-            <span className="mini-avatar-face" />
-            <span className="mini-avatar-body" />
-          </span>
-        ) : (
-          <span className="buddy-face">
-            <Bot size={24} />
-          </span>
-        )}
+        <BuddyAvatar type={appearance} className="floating-buddy-mini-avatar" title={`${buddyName} avatar`} />
         <span className="floating-grip">
           <Grip size={10} />
         </span>
@@ -154,7 +140,6 @@ export default function FloatingBuddy({ mode, buddy, onClick }) {
           className="floating-buddy-say"
           type="button"
           onClick={() => {
-            setCartoonMode(true);
             setIsOpen(false);
             onClick?.("已切换为卡通陪伴");
           }}

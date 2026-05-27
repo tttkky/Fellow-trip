@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Bot, ChevronDown, ChevronRight, History, LogOut, Shield } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bot, ChevronDown, ChevronRight, History, LogOut, MapPin, Phone, Shield, UserRound } from "lucide-react";
 import { memoryArchives, tripHistory, userProfile } from "../data/mockData.js";
 import profileAvatar from "../assets/profile-avatar.png";
 
@@ -19,14 +19,23 @@ const safetyPreferenceOptions = [
 ];
 
 export default function ProfilePage({
+  userSettings = userProfile,
   buddySettings,
   safetyPreferences,
   onEditBuddy,
+  onEditProfile,
   onEditSafety,
   onOpenTrip,
   onLogout,
 }) {
+  const [profileOpen, setProfileOpen] = useState(false);
   const [safetyOpen, setSafetyOpen] = useState(false);
+  const [profileDraft, setProfileDraft] = useState(userSettings);
+
+  useEffect(() => {
+    setProfileDraft(userSettings);
+  }, [userSettings]);
+
   const buddyName = buddySettings?.name ?? "小旅";
   const appearance = appearanceLabels[buddySettings?.appearance] ?? buddySettings?.appearance ?? "圆滚机器人";
   const voice = buddySettings?.voice ?? "温柔";
@@ -41,22 +50,91 @@ export default function ProfilePage({
     });
   };
 
+  const updateProfileDraft = (key, value) => {
+    setProfileDraft((draft) => ({ ...draft, [key]: value }));
+  };
+
+  const saveProfileDraft = (event) => {
+    event.preventDefault();
+    const nextProfile = {
+      ...userSettings,
+      ...profileDraft,
+      name: profileDraft.name?.trim() || userSettings.name,
+      city: profileDraft.city?.trim() || userSettings.city,
+      phone: profileDraft.phone?.trim() || userSettings.phone,
+      safetyContact: profileDraft.safetyContact?.trim() || userSettings.safetyContact,
+      safetyContactPhone: profileDraft.safetyContactPhone?.trim() || userSettings.safetyContactPhone || "",
+    };
+    onEditProfile?.(nextProfile);
+    setProfileDraft(nextProfile);
+    setProfileOpen(false);
+  };
+
   return (
     <div className="page-stack">
       <section className="profile-hero">
         <div className="profile-avatar">
-          <img src={profileAvatar} alt={`${userProfile.name}的头像`} />
+          <img src={profileAvatar} alt={`${userSettings.name}的头像`} />
         </div>
         <div>
           <span className="eyebrow">独旅档案</span>
-          <h2>{userProfile.name}</h2>
+          <h2>{userSettings.name}</h2>
           <p>
-            {userProfile.city} · 已完成 {completedSoloTripCount} 次独自旅行
+            {userSettings.city} · 已完成 {completedSoloTripCount} 次独自旅行
           </p>
         </div>
       </section>
 
-      <button className="profile-action" onClick={onEditBuddy}>
+      <button
+        className="profile-action"
+        type="button"
+        aria-expanded={profileOpen}
+        onClick={() => {
+          setProfileDraft(userSettings);
+          setProfileOpen((open) => !open);
+        }}
+      >
+        <span className="profile-action-icon">
+          <UserRound size={20} />
+        </span>
+        <span>
+          <strong>个人信息设置</strong>
+          <small>
+            {userSettings.name} · {userSettings.city} · 紧急联系人：{userSettings.safetyContact}
+          </small>
+        </span>
+        {profileOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+      </button>
+
+      {profileOpen && (
+        <form className="card profile-settings-card" onSubmit={saveProfileDraft}>
+          <label className="profile-settings-field">
+            <span><UserRound size={15} /> 名字</span>
+            <input value={profileDraft.name ?? ""} onChange={(event) => updateProfileDraft("name", event.target.value)} />
+          </label>
+          <label className="profile-settings-field">
+            <span><MapPin size={15} /> 地区</span>
+            <input value={profileDraft.city ?? ""} onChange={(event) => updateProfileDraft("city", event.target.value)} />
+          </label>
+          <label className="profile-settings-field">
+            <span><Phone size={15} /> 手机号码</span>
+            <input value={profileDraft.phone ?? ""} onChange={(event) => updateProfileDraft("phone", event.target.value)} />
+          </label>
+          <label className="profile-settings-field">
+            <span><Shield size={15} /> 紧急联系人</span>
+            <input value={profileDraft.safetyContact ?? ""} onChange={(event) => updateProfileDraft("safetyContact", event.target.value)} />
+          </label>
+          <label className="profile-settings-field">
+            <span><Phone size={15} /> 紧急联系人号码</span>
+            <input value={profileDraft.safetyContactPhone ?? ""} onChange={(event) => updateProfileDraft("safetyContactPhone", event.target.value)} />
+          </label>
+          <button className="primary-button full" type="submit">
+            保存个人信息
+          </button>
+        </form>
+      )}
+
+      <button className="profile-action" type="button" onClick={onEditBuddy}>
         <span className="profile-action-icon">
           <Bot size={20} />
         </span>
@@ -138,7 +216,7 @@ export default function ProfilePage({
         })}
       </section>
 
-      <button className="secondary-button full-width" onClick={onLogout}>
+      <button className="secondary-button full-width" type="button" onClick={onLogout}>
         <LogOut size={17} /> 退出登录
       </button>
     </div>
