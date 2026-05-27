@@ -1852,6 +1852,30 @@ export const confirmedCompanionTrips = [
         distance: "2.4km",
         intro: "更安静的老别墅街区，适合天气太晒时替换沙坡尾。",
       },
+      {
+        name: "南普陀",
+        tag: "低强度",
+        distance: "2.8km",
+        intro: "寺院和山脚路线节奏平缓，可以和厦大外圈、沙坡尾顺路组合。",
+      },
+      {
+        name: "厦门大学外圈",
+        tag: "顺路散步",
+        distance: "3.1km",
+        intro: "主路清楚，适合顺路慢走，不用专门绕远。",
+      },
+      {
+        name: "白城沙滩",
+        tag: "日落海边",
+        distance: "3.7km",
+        intro: "靠近厦大和胡里山炮台，适合傍晚看海，返程走主路更稳。",
+      },
+      {
+        name: "中山路",
+        tag: "夜间友好",
+        distance: "4.2km",
+        intro: "骑楼、小吃和商圈集中，适合晚饭或返程前补给。",
+      },
     ],
 
     route: ["酒店", "沙坡尾", "阿吉仔海鲜饭", "海边散步"],

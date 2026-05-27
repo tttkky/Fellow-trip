@@ -35,6 +35,7 @@ import {
   trafficDetailDays,
   trafficSegments,
 } from "../data/mockData.js";
+import BuddyAvatar from "../components/BuddyAvatar.jsx";
 import huaxinRoadImage from "../assets/day2-2.jpg";
 import ferryImage from "../assets/day1-3.jpg";
 import oldTownImage from "../assets/day3-2.jpg";
@@ -134,13 +135,7 @@ const getSpotImageUrl = (spotName, city) => {
 const simpleChoiceKey = (region, place) => `${region.id}::${place.name}`;
 
 function BuddyChatAvatar({ appearance = "round-bot" }) {
-  return (
-    <span className={`chat-buddy-avatar buddy-avatar-${appearance}`} aria-hidden="true">
-      <span className="chat-avatar-head" />
-      <span className="chat-avatar-eyes" />
-      <span className="chat-avatar-body" />
-    </span>
-  );
+  return <BuddyAvatar type={appearance} className="chat-buddy-avatar" title="buddy chat avatar" />;
 }
 
 export default function HomePage({ setActivePage, showToast, onConfirmTrip, buddySettings }) {
@@ -1030,11 +1025,7 @@ export default function HomePage({ setActivePage, showToast, onConfirmTrip, budd
             </section>
           )}
           <button className="planner-buddy-button" type="button" onClick={() => setBuddyPanelOpen((open) => !open)}>
-            <span className="chat-buddy-avatar buddy-avatar-round-bot" aria-hidden="true">
-              <span className="chat-avatar-head" />
-              <span className="chat-avatar-eyes" />
-              <span className="chat-avatar-body" />
-            </span>
+            <BuddyChatAvatar appearance={buddySettings?.appearance} />
             <strong>{buddyPanelOpen ? "收起" : "找小旅改"}</strong>
           </button>
         </div>
