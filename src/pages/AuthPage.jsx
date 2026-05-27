@@ -51,7 +51,7 @@ export default function AuthPage({ onSuccess, showToast }) {
           </label>
         </div>
 
-        <button className="primary-button full" onClick={onSuccess}>
+        <button className="primary-button full" onClick={() => onSuccess(mode)}>
           <Sparkles size={17} /> {mode === "login" ? "登录并继续" : "注册并创建搭子"}
         </button>
         <button className="text-button auth-help" onClick={() => showToast("原型演示：验证码登录将在下一阶段补充")}>
