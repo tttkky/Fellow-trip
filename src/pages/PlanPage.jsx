@@ -4,6 +4,7 @@ import {
   Bot,
   Camera,
   ChevronRight,
+  Info,
   MapPinned,
   Pause,
   Play,
@@ -12,7 +13,80 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { spotGuide, photoGuide } from "../data/mockData";
+import { destinationIdeas, spotGuide, photoGuide } from "../data/mockData";
+import huaxinRoadImage from "../assets/day2-2.jpg";
+import ferryImage from "../assets/day1-3.jpg";
+import oldTownImage from "../assets/day3-2.jpg";
+import xiamenFallbackImage from "../assets/hero-1.jpg";
+import hangzhouFallbackImage from "../assets/hero-2.jpg";
+import chengduFallbackImage from "../assets/hero-3.jpg";
+import botanicalGardenImage from "../assets/spots/botanical-garden.jpg";
+import gulangyuImage from "../assets/spots/gulangyu.jpg";
+import huandaoRoadImage from "../assets/spots/huandao-road.jpg";
+import hulishanImage from "../assets/spots/hulishan.jpg";
+import lingyinImage from "../assets/spots/lingyin.jpg";
+import nanputuoImage from "../assets/spots/nanputuo.jpg";
+import shapoweiImage from "../assets/spots/shapowei.jpg";
+import westLakeImage from "../assets/spots/west-lake.jpg";
+import xiamenUniversityImage from "../assets/spots/xiamen-university.jpg";
+import zhongshanRoadImage from "../assets/spots/zhongshan-road.jpg";
+
+const spotImages = {
+  沙坡尾: shapoweiImage,
+  环岛路: huandaoRoadImage,
+  鼓浪屿: gulangyuImage,
+  中山路: zhongshanRoadImage,
+  八市: oldTownImage,
+  南普陀: nanputuoImage,
+  万石植物园: botanicalGardenImage,
+  华新路: huaxinRoadImage,
+  厦门大学外圈: xiamenUniversityImage,
+  黄厝海滩: huandaoRoadImage,
+  曾厝垵: huaxinRoadImage,
+  白城沙滩: huandaoRoadImage,
+  胡里山炮台: hulishanImage,
+  山海健康步道: huandaoRoadImage,
+  菽庄花园: gulangyuImage,
+  日光岩: gulangyuImage,
+  皓月园: ferryImage,
+  最美转角: gulangyuImage,
+  钢琴博物馆: gulangyuImage,
+  轮渡码头外圈: ferryImage,
+  中华城商圈: zhongshanRoadImage,
+  龙井村: hangzhouFallbackImage,
+  小河直街: westLakeImage,
+  西湖外圈: westLakeImage,
+  断桥残雪: westLakeImage,
+  柳浪闻莺: westLakeImage,
+  湖滨银泰: westLakeImage,
+  灵隐寺: lingyinImage,
+  永福寺: lingyinImage,
+  满觉陇: hangzhouFallbackImage,
+  拱宸桥: westLakeImage,
+  法喜寺: lingyinImage,
+  河坊街: zhongshanRoadImage,
+  武林夜市: oldTownImage,
+  大兜路: westLakeImage,
+  玉林路: chengduFallbackImage,
+  人民公园: chengduFallbackImage,
+  宽窄巷子: chengduFallbackImage,
+  东郊记忆: chengduFallbackImage,
+  锦里: chengduFallbackImage,
+  杜甫草堂: chengduFallbackImage,
+  望平街: chengduFallbackImage,
+};
+
+const cityFallbackImages = {
+  厦门: xiamenFallbackImage,
+  杭州: westLakeImage,
+  成都: chengduFallbackImage,
+};
+
+const allAttractionDetails = destinationIdeas.flatMap((destination) =>
+  destination.attractions.map((spot) => ({ ...spot, city: destination.city })),
+);
+
+const getSpotImageUrl = (spotName, city) => spotImages[spotName] ?? cityFallbackImages[city] ?? cityFallbackImages.厦门;
 
 export default function PlanPage({ confirmedTrips = [], setActivePage, showToast, updateTripStatus, deleteTrip }) {
   const [activeTripId, setActiveTripId] = useState("");
@@ -90,6 +164,21 @@ export default function PlanPage({ confirmedTrips = [], setActivePage, showToast
   }
 
   if (selectedSpot) {
+    const attractionDetail = allAttractionDetails.find((spot) => spot.name === selectedSpot.name);
+    const detailedSpot = {
+      ...selectedSpot,
+      ...attractionDetail,
+      distance: selectedSpot.distance,
+      tag: attractionDetail?.tag ?? selectedSpot.tag ?? "景点",
+      intro: attractionDetail?.intro ?? selectedSpot.intro ?? "适合放进当天路线，实际停留时间可以按体力调整。",
+      stay: attractionDetail?.stay ?? "60-90 分钟",
+      bestTime: attractionDetail?.bestTime ?? "上午或傍晚",
+      solo: attractionDetail?.solo ?? "路线清楚，补给方便",
+      backup: attractionDetail?.backup ?? "天气不好可换室内/商圈",
+      detail: attractionDetail?.detail ?? selectedSpot.details ?? selectedSpot.intro,
+      city: attractionDetail?.city ?? activeTrip.city,
+    };
+
     return (
       <div className="page-stack companion-page">
         <div className="companion-topbar">
@@ -103,10 +192,38 @@ export default function PlanPage({ confirmedTrips = [], setActivePage, showToast
           <span />
         </div>
         <section className="spot-card flow-page-card">
-          <div className="spot-detail large-spot-detail">
-            <span className="pill">{selectedSpot.tag} · {selectedSpot.distance}</span>
-            <strong>{selectedSpot.name}</strong>
-            <p>{selectedSpot.intro}</p>
+          <div
+            className="spot-detail-hero"
+            style={{ backgroundImage: `url("${getSpotImageUrl(detailedSpot.name, detailedSpot.city)}")` }}
+            aria-label={`${detailedSpot.name} 图片`}
+          >
+            <span className="pill dark">{detailedSpot.tag} · {detailedSpot.distance}</span>
+            <div>
+              <strong>{detailedSpot.name}</strong>
+              <p>{detailedSpot.intro}</p>
+            </div>
+          </div>
+          <div className="spot-detail-grid">
+            <div>
+              <span>建议停留</span>
+              <strong>{detailedSpot.stay}</strong>
+            </div>
+            <div>
+              <span>适合时段</span>
+              <strong>{detailedSpot.bestTime}</strong>
+            </div>
+            <div>
+              <span>独行友好</span>
+              <strong>{detailedSpot.solo}</strong>
+            </div>
+            <div>
+              <span>替换方向</span>
+              <strong>{detailedSpot.backup}</strong>
+            </div>
+          </div>
+          <div className="spot-detail-note">
+            <Info size={16} />
+            <p>{detailedSpot.detail}</p>
           </div>
 
           {spotGuide[selectedSpot.name] && (
