@@ -4,15 +4,26 @@ import {
   Clock3,
   MapPinned,
   MicOff,
+  Pause,
   PhoneOff,
+  Settings,
   Siren,
   Volume2,
   X,
 } from "lucide-react";
 import { safetyCompanionCall, safetyMedia } from "../data/mockData.js";
 
-export default function SafetyPage({ showToast, safetyPreferences }) {
+const safetyPreferenceOptions = [
+  { key: "safetyMode", label: "安全守护", description: "保持陪伴、路线和异常状态提醒" },
+  { key: "nightTravelReminder", label: "夜间提醒", description: "夜间出行时主动提醒光线、路线和休息点" },
+  { key: "remoteRouteHint", label: "偏僻路线提示", description: "路线偏离或进入偏僻区域时给出轻提示" },
+  { key: "locationShareReminder", label: "位置共享提醒", description: "需要时提醒把当前位置分享给微信好友" },
+  { key: "emergencyContactReminder", label: "联系人提示", description: "紧急情况下提示联系紧急联系人" },
+];
+
+export default function SafetyPage({ showToast, safetyPreferences, onSafetyPreferencesChange }) {
   const [shareOpen, setShareOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [muted, setMuted] = useState(false);
   const [speakerOn, setSpeakerOn] = useState(true);
   const [sosHolding, setSosHolding] = useState(false);
@@ -27,6 +38,13 @@ export default function SafetyPage({ showToast, safetyPreferences }) {
   };
 
   useEffect(() => () => window.clearTimeout(sosTimerRef.current), []);
+
+  const updateSafetyPreference = (key) => {
+    onSafetyPreferencesChange?.({
+      ...safetyPreferences,
+      [key]: !safetyPreferences[key],
+    });
+  };
 
   const startSosHold = () => {
     if (sosSent) return;
@@ -93,6 +111,14 @@ export default function SafetyPage({ showToast, safetyPreferences }) {
             <span>免提</span>
           </button>
           <button
+            className="pause-call"
+            type="button"
+            onClick={() => updateSafetyPreference("safetyMode")}
+          >
+            <Pause size={19} />
+            <span>{isSafetyModeOn ? "暂停" : "恢复"}</span>
+          </button>
+          <button
             className="end-call"
             type="button"
             onClick={() => showToast("陪伴通话已结束，需要时小旅随时回来")}
@@ -106,7 +132,10 @@ export default function SafetyPage({ showToast, safetyPreferences }) {
       <section className="safety-preference-summary" aria-label="当前安全偏好">
         <div className="safety-navigation-header">
           <h3>当前守护偏好</h3>
-          <span>{isSafetyModeOn ? "守护中" : "已暂停"}</span>
+          <button className="safety-settings-entry" type="button" onClick={() => setSettingsOpen((value) => !value)}>
+            <Settings size={14} />
+            <span>{settingsOpen ? "收起设置" : "设置"}</span>
+          </button>
         </div>
         <div className="safety-preference-tags">
           <span className={safetyPreferences.nightTravelReminder ? "active" : ""}>夜间提醒</span>
@@ -115,6 +144,29 @@ export default function SafetyPage({ showToast, safetyPreferences }) {
           <span className={safetyPreferences.emergencyContactReminder ? "active" : ""}>联系人提示</span>
         </div>
       </section>
+
+      {settingsOpen && (
+        <section className="card safety-preferences-card safety-page-settings" aria-label="安全偏好设置">
+          {safetyPreferenceOptions.map((item) => (
+            <button
+              className="safety-preference-row"
+              type="button"
+              role="switch"
+              aria-checked={safetyPreferences[item.key]}
+              key={item.key}
+              onClick={() => updateSafetyPreference(item.key)}
+            >
+              <span>
+                <strong>{item.label}</strong>
+                <small>{item.description}</small>
+              </span>
+              <i className={safetyPreferences[item.key] ? "active" : ""}>
+                <b />
+              </i>
+            </button>
+          ))}
+        </section>
+      )}
 
       <section className="safety-navigation-card" aria-label="导航窗口">
         <div className="safety-navigation-header">

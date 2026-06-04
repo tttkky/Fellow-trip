@@ -7,9 +7,12 @@ import {
   CloudMoon,
   CloudSun,
   Coffee,
+  Clock3,
   Info,
   MapPinned,
+  MicOff,
   Pause,
+  PhoneOff,
   Play,
   Route,
   Search,
@@ -19,7 +22,7 @@ import {
   SunMedium,
   Trash2,
   Utensils,
-  X,
+  Volume2,
 } from "lucide-react";
 import BuddyAvatar from "../components/BuddyAvatar.jsx";
 import { destinationIdeas, photoGuide, spotGuide } from "../data/mockData";
@@ -128,6 +131,8 @@ export default function PlanPage({
   const [selectedSpot, setSelectedSpot] = useState(null);
   const [spokenLine, setSpokenLine] = useState("");
   const [companionInput, setCompanionInput] = useState("");
+  const [companionMuted, setCompanionMuted] = useState(false);
+  const [companionSpeakerOn, setCompanionSpeakerOn] = useState(true);
   const [quickAction, setQuickAction] = useState(null);
   const [quickStage, setQuickStage] = useState("idle");
   const [tripPendingDelete, setTripPendingDelete] = useState(null);
@@ -565,6 +570,18 @@ export default function PlanPage({
 
       <section className="companion-buddy-stage" aria-live="polite">
         <BuddyAvatar type={buddyAppearance} className="companion-center-buddy" title={`${buddyName} avatar`} />
+        <div className="companion-call-status">
+          <span className="safety-live-status">
+            <i /> 通话中
+          </span>
+          <div className="safety-call-timing companion-call-timing">
+            <div>
+              <Clock3 size={17} />
+              <small>通话时间</small>
+              <span>06:24</span>
+            </div>
+          </div>
+        </div>
         <div className="companion-speech-bubble">
           <p>{spokenLine || activeTrip.buddyLine}</p>
         </div>
@@ -579,15 +596,36 @@ export default function PlanPage({
             <Send size={15} />
           </button>
         </form>
-        <div className="trip-exit-actions companion-live-actions">
-          <button type="button" className="icon-button" onClick={() => exitTrip("safetyOnly", "已退出陪伴", "已退出行程陪伴，安全功能仍然打开")} aria-label="退出行程">
-            <X size={15} />
+        <div className="safety-call-controls companion-call-controls" aria-label="陪伴通话操作">
+          <button
+            className={companionMuted ? "active" : ""}
+            type="button"
+            onClick={() => {
+              setCompanionMuted((value) => !value);
+              showToast(companionMuted ? "麦克风已开启" : "已静音");
+            }}
+          >
+            <MicOff size={19} />
+            <span>静音</span>
           </button>
-          <button type="button" className="icon-button" onClick={() => exitTrip("paused", "已暂停", "行程已暂停，安全功能仍然打开")} aria-label="退出并暂停行程">
-            <Pause size={15} />
+          <button
+            className={companionSpeakerOn ? "active" : ""}
+            type="button"
+            onClick={() => {
+              setCompanionSpeakerOn((value) => !value);
+              showToast(companionSpeakerOn ? "免提已关闭" : "免提已开启");
+            }}
+          >
+            <Volume2 size={19} />
+            <span>免提</span>
           </button>
-          <button type="button" className="primary-button end-companion" onClick={() => exitTrip("completed", "已结束", "已结束陪伴，旅程已记录")} aria-label="结束陪伴">
-            结束
+          <button type="button" className="pause-call" onClick={() => exitTrip("paused", "已暂停", "行程已暂停，安全功能仍然打开")}>
+            <Pause size={19} />
+            <span>暂停</span>
+          </button>
+          <button type="button" className="end-call" onClick={() => exitTrip("completed", "已结束", "已结束陪伴，旅程已记录")} aria-label="结束陪伴">
+            <PhoneOff size={19} />
+            <span>结束</span>
           </button>
         </div>
       </section>

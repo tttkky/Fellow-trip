@@ -1423,7 +1423,7 @@ p {
 
 .safety-call-controls {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.28fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -1445,9 +1445,33 @@ p {
   background: #fff2d4;
 }
 
+.safety-call-controls .pause-call {
+  color: #a87634;
+  background: #fff3d6;
+}
+
 .safety-call-controls .end-call {
   color: #bd6454;
   background: #fff0eb;
+}
+
+.safety-settings-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  border-radius: 999px;
+  color: var(--primary-deep);
+  background: #fff3d6;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.safety-page-settings {
+  border-color: rgba(241, 223, 191, 0.92);
+  background: rgba(255, 254, 250, 0.97);
 }
 
 .safety-navigation-card {
@@ -5064,6 +5088,22 @@ article.destination-card {
   gap: 12px;
   padding: 18px 14px 14px;
   text-align: center;
+}
+
+.companion-call-status {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.companion-call-timing {
+  width: fit-content;
+  min-width: 0;
+}
+
+.companion-call-controls {
+  width: 100%;
 }
 
 .companion-center-buddy {

@@ -384,7 +384,13 @@ export default function App() {
               buddySettings={buddySettings}
             />
           )}
-          {effectivePage === "safety" && <SafetyPage showToast={showToast} safetyPreferences={safetyPreferences} />}
+          {effectivePage === "safety" && (
+            <SafetyPage
+              showToast={showToast}
+              safetyPreferences={safetyPreferences}
+              onSafetyPreferencesChange={handleSafetyPreferencesChange}
+            />
+          )}
           {effectivePage === "memory" && (
             <MemoryPage showToast={showToast} initialArchiveId={selectedMemoryArchiveId} />
           )}
