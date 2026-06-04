@@ -501,7 +501,7 @@ export const planningModes = [
   },
   {
     id: "detailed",
-    title: "详略模式",
+    title: "详细模式",
     desc: "生成具体到景点、餐厅、交通和预留时间的攻略，适合想提前安心的人。",
   },
 ];
