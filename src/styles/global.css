@@ -2002,15 +2002,15 @@ p {
 }
 
 .photo-collage span:nth-child(1) {
-  background: url(/src/assets/hero-1.jpg) center/cover no-repeat !important;
+  background: url(../assets/hero-1.jpg) center/cover no-repeat !important;
 }
 
 .photo-collage span:nth-child(2) {
-  background: url(/src/assets/hero-2.jpg) center/cover no-repeat !important;
+  background: url(../assets/hero-2.jpg) center/cover no-repeat !important;
 }
 
 .photo-collage span:nth-child(3) {
-  background: url(/src/assets/hero-3.jpg) center/cover no-repeat !important;
+  background: url(../assets/hero-3.jpg) center/cover no-repeat !important;
 }
 
 .memory-row {

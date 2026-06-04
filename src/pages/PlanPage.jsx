@@ -594,7 +594,11 @@ export default function PlanPage({
 
       <section className="companion-map-card">
         <div className="companion-map" aria-label="当前行程地图">
-          <img className="companion-map-image" src="/images/companion-map-shapowei.png" alt="沙坡尾附近地图" />
+          <img
+            className="companion-map-image"
+            src={`${import.meta.env.BASE_URL}images/companion-map-shapowei.png`}
+            alt="沙坡尾附近地图"
+          />
         </div>
         <div className="node-detail">
           <div>

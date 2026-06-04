@@ -1,3 +1,5 @@
+const publicAsset = (path) => `${import.meta.env.BASE_URL}${path}`;
+
 export const userProfile = {
   name: "小a",
   phone: "10000000000",
@@ -1892,8 +1894,8 @@ export const safetyCompanionCall = {
 };
 
 export const safetyMedia = {
-  navigationImage: "/images/navigation.png",
-  wechatContactsImage: "/images/wechat-contacts.png",
+  navigationImage: publicAsset("images/navigation.png"),
+  wechatContactsImage: publicAsset("images/wechat-contacts.png"),
 };
 
 // === 陪伴反馈评价核心数据 ===
