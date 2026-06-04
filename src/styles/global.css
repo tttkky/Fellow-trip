@@ -4274,8 +4274,7 @@ article.destination-card {
 .floating-buddy-tip {
   position: absolute;
   bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 0;
   margin-bottom: 8px;
   border-radius: 12px;
   background: rgba(255, 247, 221, 0.94);
@@ -4283,26 +4282,36 @@ article.destination-card {
   padding: 8px 12px;
   color: #715c48;
   font-size: 12px;
-  white-space: nowrap;
+  line-height: 1.45;
+  width: max-content;
+  max-width: min(220px, calc(100vw - 48px));
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
+  transform-origin: calc(100% - 22px) 100%;
 }
 
 .floating-buddy-tip::after {
   content: "";
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 22px;
   border-width: 6px;
   border-style: solid;
   border-color: rgba(255, 247, 221, 0.94) transparent transparent transparent;
 }
 
-.floating-buddy:hover .floating-buddy-tip,
-.floating-buddy:focus .floating-buddy-tip {
-  opacity: 1;
-  transform: translateX(-50%) translateY(-4px);
+.floating-buddy-tip.tip-open-right {
+  right: auto;
+  left: 0;
+  transform-origin: 22px 100%;
+}
+
+.floating-buddy-tip.tip-open-right::after {
+  right: auto;
+  left: 22px;
 }
 
 .floating-buddy-say {

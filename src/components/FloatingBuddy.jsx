@@ -35,6 +35,7 @@ export default function FloatingBuddy({ mode, buddy, onClick }) {
 
   const appearance = buddy?.appearance ?? "round-bot";
   const buddyName = buddy?.name ?? "小旅";
+  const tipDirection = position.right > 120 ? "tip-open-right" : "tip-open-left";
 
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -104,7 +105,11 @@ export default function FloatingBuddy({ mode, buddy, onClick }) {
   return (
       <div className="floating-buddy-wrap" style={{ right: position.right, bottom: position.bottom }}>
         {currentTip && !isOpen && (
-          <div className={`floating-buddy-tip ${tipFading ? 'fading' : 'visible'}`} role="status" aria-live="polite">
+          <div
+            className={`floating-buddy-tip ${tipDirection} ${tipFading ? "fading" : "visible"}`}
+            role="status"
+            aria-live="polite"
+          >
             {currentTip}
           </div>
         )}
